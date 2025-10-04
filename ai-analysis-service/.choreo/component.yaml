@@ -1,0 +1,19 @@
+# +required The configuration file schema version
+schemaVersion: 1.0
+
+# +optional Incoming connection details for the component
+endpoints:
+  # +required Unique name for the endpoint
+  - name: ai-analysis-service
+    # +optional Display name for the endpoint
+    displayName: AI Analysis Service
+    # +required Service section has the user service endpoint details
+    service:
+      # +optional Context (base path) of the API
+      basePath: /
+      # +required Numeric port value that gets exposed
+      port: 8001
+    # +required Type of the traffic
+    type: REST
+    # +required Endpoint network visibility (Project = internal only)
+    networkVisibility: Project

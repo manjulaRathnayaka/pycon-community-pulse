@@ -1,0 +1,5 @@
+# +required The configuration file schema version
+schemaVersion: 1.0
+
+# Collector service runs as a scheduled task (no endpoints)
+# This component will be deployed as a Manual Task or Scheduled Task

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyCon Community Pulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 { font-size: 3em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 { color: #667eea; font-size: 2.5em; margin-bottom: 8px; }
+        .stat-card p { color: #666; font-size: 0.9em; text-transform: uppercase; }
+        .sentiment {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .sentiment h2 { margin-bottom: 20px; color: #333; }
+        .sentiment-bar {
+            display: flex;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .sentiment-positive { background: #10b981; }
+        .sentiment-neutral { background: #f59e0b; }
+        .sentiment-negative { background: #ef4444; }
+        .sentiment-legend {
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.9em;
+        }
+        .sentiment-legend span { display: flex; align-items: center; }
+        .sentiment-legend .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .topics {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .topics h2 { margin-bottom: 20px; color: #333; }
+        .topic-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topic-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .posts {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .posts h2 { margin-bottom: 20px; color: #333; }
+        .post-item {
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #f9fafb;
+            border-radius: 4px;
+        }
+        .post-item h3 { margin-bottom: 8px; color: #333; }
+        .post-item .meta {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .post-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .post-item a:hover { text-decoration: underline; }
+        .sentiment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .sentiment-badge.positive { background: #d1fae5; color: #065f46; }
+        .sentiment-badge.negative { background: #fee2e2; color: #991b1b; }
+        .sentiment-badge.neutral { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐍 PyCon Community Pulse</h1>
+            <p>Real-time sentiment analysis of PyCon community discussions</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>{{ total_posts }}</h3>
+                <p>Total Posts</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ analyzed_posts }}</h3>
+                <p>Analyzed</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ sentiment_stats.positive }}</h3>
+                <p>Positive</p>
+            </div>
+        </div>
+
+        <div class="sentiment">
+            <h2>📊 Sentiment Overview (Last 7 Days)</h2>
+            <div class="sentiment-bar">
+                {% set total = sentiment_stats.positive + sentiment_stats.neutral + sentiment_stats.negative %}
+                {% if total > 0 %}
+                    <div class="sentiment-positive" style="flex: {{ sentiment_stats.positive }}"></div>
+                    <div class="sentiment-neutral" style="flex: {{ sentiment_stats.neutral }}"></div>
+                    <div class="sentiment-negative" style="flex: {{ sentiment_stats.negative }}"></div>
+                {% else %}
+                    <div style="flex: 1; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #666;">
+                        No data yet
+                    </div>
+                {% endif %}
+            </div>
+            <div class="sentiment-legend">
+                <span><span class="dot sentiment-positive"></span> Positive: {{ sentiment_stats.positive }}</span>
+                <span><span class="dot sentiment-neutral"></span> Neutral: {{ sentiment_stats.neutral }}</span>
+                <span><span class="dot sentiment-negative"></span> Negative: {{ sentiment_stats.negative }}</span>
+            </div>
+        </div>
+
+        <div class="topics">
+            <h2>🔥 Trending Topics</h2>
+            <div class="topic-cloud">
+                {% for topic in topics %}
+                    <span class="topic-tag">{{ topic.topic }} ({{ topic.count }})</span>
+                {% endfor %}
+                {% if not topics %}
+                    <p style="color: #666;">No topics extracted yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="posts">
+            <h2>📝 Recent Posts</h2>
+            {% for post in recent_posts %}
+                <div class="post-item">
+                    <h3>{{ post.title }}</h3>
+                    <div class="meta">
+                        <span>{{ post.source }}</span> •
+                        <span>{{ post.author or "Unknown author" }}</span> •
+                        <span>{{ post.published_at.strftime('%Y-%m-%d %H:%M') if post.published_at else 'N/A' }}</span>
+                    </div>
+                    <span class="sentiment-badge {{ post.sentiment }}">{{ post.sentiment }}</span>
+                    <a href="{{ post.url }}" target="_blank">View original →</a>
+                </div>
+            {% endfor %}
+            {% if not recent_posts %}
+                <p style="color: #666;">No posts collected yet</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => location.reload(), 30000);
+    </script>
+</body>
+</html>
