@@ -1,5 +1,45 @@
 # +required The configuration file schema version
-schemaVersion: 1.0
+schemaVersion: 1.2
 
 # Collector service runs as a scheduled task (no endpoints)
-# This component will be deployed as a Manual Task or Scheduled Task
+
+# +optional Defines runtime configurations
+configurations:
+  # +optional List of environment variables
+  env:
+    - name: DATABASE_URL
+      valueFrom:
+        configForm:
+          displayName: Database URL
+          required: true
+          type: secret
+    - name: COLLECTION_INTERVAL_MINUTES
+      valueFrom:
+        configForm:
+          displayName: Collection Interval (Minutes)
+          required: false
+          type: string
+    - name: MAX_POSTS_PER_SOURCE
+      valueFrom:
+        configForm:
+          displayName: Max Posts Per Source
+          required: false
+          type: string
+    - name: YOUTUBE_API_KEY
+      valueFrom:
+        configForm:
+          displayName: YouTube API Key
+          required: false
+          type: secret
+    - name: GITHUB_TOKEN
+      valueFrom:
+        configForm:
+          displayName: GitHub Token
+          required: false
+          type: secret
+    - name: LOG_LEVEL
+      valueFrom:
+        configForm:
+          displayName: Log Level
+          required: false
+          type: string

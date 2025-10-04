@@ -1,5 +1,5 @@
 # +required The configuration file schema version
-schemaVersion: 1.0
+schemaVersion: 1.2
 
 # +optional Incoming connection details for the component
 endpoints:
@@ -13,7 +13,32 @@ endpoints:
       basePath: /
       # +required Numeric port value that gets exposed
       port: 8001
-    # +required Type of the traffic
+    # +required Type of traffic that the endpoint is accepting
     type: REST
-    # +required Endpoint network visibility (Project = internal only)
-    networkVisibility: Project
+    # +optional Network level visibilities of the endpoint
+    # Project = internal only
+    networkVisibilities:
+      - Project
+
+# +optional Defines runtime configurations
+configurations:
+  # +optional List of environment variables
+  env:
+    - name: DATABASE_URL
+      valueFrom:
+        configForm:
+          displayName: Database URL
+          required: true
+          type: secret
+    - name: OPENAI_API_KEY
+      valueFrom:
+        configForm:
+          displayName: OpenAI API Key
+          required: true
+          type: secret
+    - name: LOG_LEVEL
+      valueFrom:
+        configForm:
+          displayName: Log Level
+          required: false
+          type: string
