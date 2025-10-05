@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS posts (
     published_at TIMESTAMP,
     collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     tags JSONB,
-    metadata JSONB,
+    extra_metadata JSONB,
     analyzed BOOLEAN DEFAULT FALSE
 );
 

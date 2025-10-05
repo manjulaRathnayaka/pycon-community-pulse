@@ -17,7 +17,7 @@ class Post(Base):
     published_at = Column(DateTime)
     collected_at = Column(DateTime, server_default=func.now())
     tags = Column(JSON)
-    metadata = Column(JSON)
+    extra_metadata = Column(JSON)
     analyzed = Column(Boolean, default=False, index=True)
 
     # Relationships

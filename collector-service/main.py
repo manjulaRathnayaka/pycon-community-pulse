@@ -42,7 +42,7 @@ class DataCollector:
                         "author_url": article["user"]["url"],
                         "published_at": datetime.fromisoformat(article["published_at"].replace("Z", "+00:00")),
                         "tags": json.dumps(article.get("tag_list", [])),
-                        "metadata": json.dumps({
+                        "extra_metadata": json.dumps({
                             "positive_reactions_count": article.get("positive_reactions_count", 0),
                             "comments_count": article.get("comments_count", 0)
                         })
@@ -73,7 +73,7 @@ class DataCollector:
                     "author_url": entry.get("author_detail", {}).get("href", ""),
                     "published_at": datetime(*entry.published_parsed[:6]) if hasattr(entry, 'published_parsed') else None,
                     "tags": json.dumps([tag.term for tag in entry.get("tags", [])[:5]]),
-                    "metadata": json.dumps({})
+                    "extra_metadata": json.dumps({})
                 })
 
             print(f"✅ Collected {len(posts)} posts from Medium")
@@ -115,7 +115,7 @@ class DataCollector:
                     "author_url": f"https://www.youtube.com/channel/{snippet['channelId']}",
                     "published_at": datetime.fromisoformat(snippet["publishedAt"].replace("Z", "+00:00")),
                     "tags": json.dumps([]),
-                    "metadata": json.dumps({})
+                    "extra_metadata": json.dumps({})
                 })
 
             print(f"✅ Collected {len(posts)} videos from YouTube")
@@ -153,7 +153,7 @@ class DataCollector:
                     "author_url": repo["owner"]["html_url"],
                     "published_at": datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00")),
                     "tags": json.dumps(repo.get("topics", [])[:5]),
-                    "metadata": json.dumps({
+                    "extra_metadata": json.dumps({
                         "stars": repo.get("stargazers_count", 0),
                         "forks": repo.get("forks_count", 0)
                     })

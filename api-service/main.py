@@ -12,6 +12,7 @@ from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 import uvicorn
+import json
 
 from shared import get_db, config, Post, SentimentAnalysis, Topic, Entity
 from pydantic import BaseModel
@@ -43,7 +44,7 @@ class PostResponse(BaseModel):
     author_url: Optional[str]
     published_at: Optional[datetime]
     collected_at: datetime
-    tags: Optional[dict]
+    tags: Optional[list]
     sentiment: Optional[str]
     confidence: Optional[float]
 
@@ -111,7 +112,7 @@ async def get_posts(
             author_url=p.author_url,
             published_at=p.published_at,
             collected_at=p.collected_at,
-            tags=p.tags,
+            tags=json.loads(p.tags) if p.tags else [],
             sentiment=p.sentiment[0].sentiment if p.sentiment else None,
             confidence=float(p.sentiment[0].confidence) if p.sentiment else None
         )
