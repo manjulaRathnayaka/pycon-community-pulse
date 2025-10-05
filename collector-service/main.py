@@ -194,15 +194,21 @@ def save_posts_to_db(posts: List[Dict], source: str):
         posts_new = 0
 
         for post_data in posts:
-            # Check if post already exists
-            existing = db.query(Post).filter(
-                Post.source_url == post_data["source_url"]
-            ).first()
+            try:
+                # Check if post already exists
+                existing = db.query(Post).filter(
+                    Post.source_url == post_data["source_url"]
+                ).first()
 
-            if not existing:
-                post = Post(**post_data)
-                db.add(post)
-                posts_new += 1
+                if not existing:
+                    post = Post(**post_data)
+                    db.add(post)
+                    db.flush()  # Flush to detect duplicates before final commit
+                    posts_new += 1
+            except Exception as e:
+                # Skip duplicates that might occur due to race conditions
+                db.rollback()
+                continue
 
         # Log collection
         log = CollectionLog(
