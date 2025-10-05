@@ -13,9 +13,6 @@ endpoints:
       basePath: /
       # +required Numeric port value that gets exposed via the endpoint
       port: 8080
-      # +optional OpenAPI specification path
-      openApiSpec:
-        filePath: openapi.yaml
     # +required Type of traffic that the endpoint is accepting
     # Allowed values: REST, GraphQL, WS, GRPC, TCP, UDP
     type: REST
@@ -23,6 +20,8 @@ endpoints:
     # Accepted values: Project|Organization|Public(Default)
     networkVisibilities:
       - Public
+    # +optional Schema file path
+    schemaFilePath: openapi.yaml
 
 # +optional Defines runtime configurations
 configurations:
