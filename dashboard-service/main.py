@@ -20,7 +20,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Get API connection details from Choreo environment variables
 API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_CONNECTION_SERVICEURL", "http://localhost:8080")
-API_KEY = os.getenv("CHOREO_API_SERVICE_CONNECTION_CHOREOAPIKEY", "")
+API_KEY = os.getenv("CHOREO_API_SERVICE_CONNECTION_APIKEY", "")
 
 # For local development, use config.js style URL (when deployed, it will be injected)
 # This allows the dashboard to work both locally and in Choreo
