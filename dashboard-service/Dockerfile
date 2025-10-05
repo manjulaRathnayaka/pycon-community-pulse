@@ -6,12 +6,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy shared module
-COPY ../shared /app/shared
-
-# Copy service code
+# Copy service code, templates and shared module
 COPY main.py .
 COPY templates ./templates
+COPY shared ./shared
 
 # Create non-root user with UID in required range
 RUN useradd -u 10003 -m appuser && chown -R appuser:appuser /app

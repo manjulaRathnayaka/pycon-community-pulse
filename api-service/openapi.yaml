@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: PyCon Community Pulse API
+  description: API for accessing PyCon community sentiment and trends
+  version: 1.0.0
+  contact:
+    name: PyCon Community Pulse
+    url: https://github.com/manjulaRathnayaka/pycon-community-pulse
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.choreo.dev/pycon-pulse
+    description: Production server
+
+paths:
+  /posts:
+    get:
+      summary: Get posts
+      description: Retrieve posts with optional filtering and pagination
+      operationId: getPosts
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of posts to return
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 100
+        - name: source
+          in: query
+          description: Filter by source platform
+          required: false
+          schema:
+            type: string
+            enum: [devto, medium, youtube, github]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '500':
+          description: Internal server error
+
+  /sentiment/stats:
+    get:
+      summary: Get sentiment statistics
+      description: Get aggregated sentiment statistics for the specified time period
+      operationId: getSentimentStats
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to include in statistics
+          required: false
+          schema:
+            type: integer
+            default: 7
+            minimum: 1
+            maximum: 30
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SentimentStats'
+        '500':
+          description: Internal server error
+
+  /trending/topics:
+    get:
+      summary: Get trending topics
+      description: Get the most popular trending topics
+      operationId: getTrendingTopics
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of topics to return
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopicTrend'
+        '500':
+          description: Internal server error
+
+  /health:
+    get:
+      summary: Health check
+      description: Check the health of the API service
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the post
+        source:
+          type: string
+          description: Source platform (devto, medium, youtube, github)
+          example: "devto"
+        source_url:
+          type: string
+          format: uri
+          description: Original URL of the post
+        title:
+          type: string
+          description: Title of the post
+          nullable: true
+        content:
+          type: string
+          description: Content or excerpt of the post
+          nullable: true
+        author_name:
+          type: string
+          description: Name of the author
+          nullable: true
+        author_url:
+          type: string
+          format: uri
+          description: URL to author's profile
+          nullable: true
+        published_at:
+          type: string
+          format: date-time
+          description: When the post was originally published
+          nullable: true
+        collected_at:
+          type: string
+          format: date-time
+          description: When the post was collected by our system
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags associated with the post
+          nullable: true
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+          description: Sentiment analysis result
+          nullable: true
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Confidence score for sentiment analysis
+          nullable: true
+
+    SentimentStats:
+      type: object
+      properties:
+        total_posts:
+          type: integer
+          description: Total number of posts analyzed
+        positive:
+          type: integer
+          description: Number of positive posts
+        negative:
+          type: integer
+          description: Number of negative posts
+        neutral:
+          type: integer
+          description: Number of neutral posts
+        positive_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Percentage of positive posts
+        negative_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Percentage of negative posts
+        neutral_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Percentage of neutral posts
+        average_confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Average confidence score
+        period_days:
+          type: integer
+          description: Number of days included in the statistics
+
+    TopicTrend:
+      type: object
+      properties:
+        topic:
+          type: string
+          description: Topic name
+        count:
+          type: integer
+          description: Number of posts mentioning this topic
+        avg_sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+          description: Average sentiment for this topic
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Average confidence score for this topic
