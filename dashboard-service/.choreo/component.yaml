@@ -22,11 +22,13 @@ endpoints:
 # +optional Dependencies for the component
 dependencies:
   serviceReferences:
-    - name: Internal API Connection
-      connectionConfig: 01f0a207-995d-188e-8ad6-35b2b449bf81
+    - name: API Service Connection
+      connectionConfig: 01f0a215-57d3-1da0-84b4-41593e37bb0a
       env:
         - from: ServiceURL
           to: CHOREO_API_SERVICE_CONNECTION_SERVICEURL
+        - from: ChoreoAPIKey
+          to: CHOREO_API_SERVICE_CONNECTION_CHOREOAPIKEY
 
 # +optional Defines runtime configurations
 configurations:
