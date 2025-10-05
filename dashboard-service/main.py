@@ -2,22 +2,13 @@
 Dashboard Service - Web UI for PyCon Community Pulse
 Displays sentiment trends, popular topics, and posts
 """
-import sys
 import os
-
-# Add current directory to path to import shared module
-sys.path.insert(0, os.path.dirname(__file__))
-
-from fastapi import FastAPI, Request, Depends
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
-from datetime import datetime, timedelta
+from datetime import datetime
 import uvicorn
-
-from shared import get_db, config, Post, SentimentAnalysis, Topic
+import httpx
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI(
     title="PyCon Community Pulse - Dashboard",
@@ -27,39 +18,71 @@ app = FastAPI(
 # Templates
 templates = Jinja2Templates(directory="templates")
 
+# Get API connection details from Choreo environment variables
+API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_CONNECTION_SERVICEURL", "http://localhost:8080")
+API_KEY = os.getenv("CHOREO_API_SERVICE_CONNECTION_CHOREOAPIKEY", "")
+
+# For local development, use config.js style URL (when deployed, it will be injected)
+# This allows the dashboard to work both locally and in Choreo
+API_BASE_URL = API_SERVICE_URL.rstrip('/')
+
+
+async def call_api(endpoint: str):
+    """Helper function to call the API service"""
+    headers = {}
+    if API_KEY:
+        headers["apikey"] = API_KEY
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            response = await client.get(f"{API_BASE_URL}{endpoint}", headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Error calling API {endpoint}: {e}")
+            return None
+
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, db: Session = Depends(get_db)):
+async def dashboard(request: Request):
     """Main dashboard page"""
 
-    # Get stats
-    total_posts = db.query(func.count(Post.id)).scalar()
-    analyzed_posts = db.query(func.count(Post.id)).filter(Post.analyzed == True).scalar()
+    # Fetch data from API endpoints
+    sentiment_data = await call_api("/sentiment/stats")
+    topics_data = await call_api("/topics/trending?limit=10")
+    posts_data = await call_api("/posts?limit=10")
 
-    # Get sentiment stats (last 7 days)
-    since = datetime.now() - timedelta(days=7)
-    sentiments = db.query(SentimentAnalysis).join(Post).filter(
-        Post.published_at >= since
-    ).all()
+    # Extract data with safe defaults
+    total_posts = sentiment_data.get("total_posts", 0) if sentiment_data else 0
+    analyzed_posts = sentiment_data.get("analyzed_posts", 0) if sentiment_data else 0
 
     sentiment_stats = {
-        "positive": sum(1 for s in sentiments if s.sentiment == "positive"),
-        "negative": sum(1 for s in sentiments if s.sentiment == "negative"),
-        "neutral": sum(1 for s in sentiments if s.sentiment == "neutral"),
+        "positive": sentiment_data.get("positive", 0) if sentiment_data else 0,
+        "negative": sentiment_data.get("negative", 0) if sentiment_data else 0,
+        "neutral": sentiment_data.get("neutral", 0) if sentiment_data else 0,
     }
 
-    # Get trending topics
-    topics = db.query(
-        Topic.topic,
-        func.count(Topic.id).label("count")
-    ).join(Post).filter(
-        Post.published_at >= since
-    ).group_by(Topic.topic).order_by(desc("count")).limit(10).all()
+    topics = topics_data.get("topics", []) if topics_data else []
 
-    # Get recent posts
-    recent_posts = db.query(Post).outerjoin(SentimentAnalysis).order_by(
-        desc(Post.published_at)
-    ).limit(10).all()
+    # Format posts for template
+    recent_posts = []
+    if posts_data and "posts" in posts_data:
+        for p in posts_data["posts"]:
+            published_at = None
+            if p.get("published_at"):
+                try:
+                    published_at = datetime.fromisoformat(p["published_at"].replace('Z', '+00:00'))
+                except:
+                    pass
+
+            recent_posts.append({
+                "title": p.get("title") or "No title",
+                "source": p.get("source", "Unknown"),
+                "author": p.get("author"),
+                "url": p.get("url", "#"),
+                "sentiment": "unknown",  # Will be enhanced when API returns sentiment with posts
+                "published_at": published_at
+            })
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -68,18 +91,8 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
             "total_posts": total_posts,
             "analyzed_posts": analyzed_posts,
             "sentiment_stats": sentiment_stats,
-            "topics": [{"topic": t.topic, "count": t.count} for t in topics],
-            "recent_posts": [
-                {
-                    "title": p.title or "No title",
-                    "source": p.source,
-                    "author": p.author_name,
-                    "url": p.source_url,
-                    "sentiment": p.sentiment[0].sentiment if p.sentiment else "unknown",
-                    "published_at": p.published_at
-                }
-                for p in recent_posts
-            ]
+            "topics": topics,
+            "recent_posts": recent_posts
         }
     )
 
