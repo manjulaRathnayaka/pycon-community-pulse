@@ -20,6 +20,13 @@ app = Flask(__name__)
 # Enable CORS for all routes
 CORS(app)
 
+# Initialize database tables when module is imported (works with Gunicorn)
+try:
+    init_db()
+    print("Database tables initialized successfully")
+except Exception as e:
+    print(f"Database initialization error (may be OK if tables exist): {e}")
+
 @app.route("/")
 def root():
     """Root endpoint"""
@@ -124,11 +131,6 @@ def get_trending_topics():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Initialize database tables on startup
-    print("Initializing database tables...")
-    init_db()
-    print("Database tables initialized successfully")
-
     port = int(os.getenv("PORT", 8080))
     app.run(
         host="0.0.0.0",
