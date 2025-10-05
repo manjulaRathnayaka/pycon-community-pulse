@@ -15,6 +15,29 @@ servers:
     description: Production server
 
 paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Get API information and status
+      operationId: getRoot
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                    example: "PyCon Community Pulse API"
+                  status:
+                    type: string
+                    example: "healthy"
+                  version:
+                    type: string
+                    example: "1.0.0"
+
   /posts:
     get:
       summary: Get posts
@@ -27,54 +50,77 @@ paths:
           required: false
           schema:
             type: integer
-            default: 50
+            default: 20
             minimum: 1
             maximum: 100
-        - name: source
-          in: query
-          description: Filter by source platform
-          required: false
-          schema:
-            type: string
-            enum: [devto, medium, youtube, github]
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  count:
+                    type: integer
+                    description: Number of posts returned
         '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /sentiment/stats:
     get:
       summary: Get sentiment statistics
-      description: Get aggregated sentiment statistics for the specified time period
+      description: Get aggregated sentiment statistics
       operationId: getSentimentStats
-      parameters:
-        - name: days
-          in: query
-          description: Number of days to include in statistics
-          required: false
-          schema:
-            type: integer
-            default: 7
-            minimum: 1
-            maximum: 30
       responses:
         '200':
           description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SentimentStats'
+                type: object
+                properties:
+                  total_posts:
+                    type: integer
+                    description: Total number of posts
+                  analyzed_posts:
+                    type: integer
+                    description: Number of analyzed posts
+                  positive:
+                    type: integer
+                    description: Number of positive posts
+                  negative:
+                    type: integer
+                    description: Number of negative posts
+                  neutral:
+                    type: integer
+                    description: Number of neutral posts
+                  average_sentiment:
+                    type: number
+                    format: float
+                    description: Average sentiment score
         '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
-  /trending/topics:
+  /topics/trending:
     get:
       summary: Get trending topics
       description: Get the most popular trending topics
@@ -95,11 +141,31 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TopicTrend'
+                type: object
+                properties:
+                  topics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                          description: Topic name
+                        count:
+                          type: integer
+                          description: Number of mentions
+                  count:
+                    type: integer
+                    description: Number of topics returned
         '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /health:
     get:
@@ -117,9 +183,28 @@ paths:
                   status:
                     type: string
                     example: "healthy"
-                  timestamp:
+                  service:
                     type: string
-                    format: date-time
+                    example: "api-service"
+                  database:
+                    type: string
+                    example: "connected"
+        '500':
+          description: Service is degraded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "degraded"
+                  service:
+                    type: string
+                  database:
+                    type: string
+                  error:
+                    type: string
 
 components:
   schemas:
