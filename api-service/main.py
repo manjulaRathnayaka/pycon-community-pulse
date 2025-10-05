@@ -7,7 +7,7 @@ import sys
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from datetime import datetime, timedelta
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, text
 
 # Add current directory to path to import shared module
 sys.path.insert(0, os.path.dirname(__file__))
@@ -34,7 +34,7 @@ def health_check():
     """Health check endpoint"""
     try:
         with get_db_context() as db:
-            db.execute("SELECT 1")
+            db.execute(text("SELECT 1"))
         return jsonify({
             "status": "healthy",
             "service": "api-service",
