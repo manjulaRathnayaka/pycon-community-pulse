@@ -217,36 +217,34 @@ def save_posts_to_db(posts: List[Dict], source: str):
 
 
 def main():
-    """Main collection loop"""
+    """Main collection - single run for scheduled/manual task"""
     collector = DataCollector()
 
-    while True:
-        try:
-            # Collect from all sources
-            results = collector.collect_all()
-
-            # Save to database
-            for source, posts in results.items():
-                if posts:
-                    save_posts_to_db(posts, source)
-
-            print(f"\n😴 Sleeping for {config.COLLECTION_INTERVAL_MINUTES} minutes...")
-            time.sleep(config.COLLECTION_INTERVAL_MINUTES * 60)
-
-        except KeyboardInterrupt:
-            print("\n\n👋 Collection stopped by user")
-            break
-        except Exception as e:
-            print(f"\n❌ Error in collection loop: {e}")
-            time.sleep(60)  # Wait 1 minute before retry
-
-
-if __name__ == "__main__":
-    print("""
+    try:
+        print("""
     ╔══════════════════════════════════════════════════════╗
     ║                                                      ║
     ║       PyCon Community Pulse - Data Collector        ║
     ║                                                      ║
     ╚══════════════════════════════════════════════════════╝
-    """)
+        """)
+
+        # Collect from all sources
+        results = collector.collect_all()
+
+        # Save to database
+        for source, posts in results.items():
+            if posts:
+                save_posts_to_db(posts, source)
+
+        print("\n✅ Collection completed successfully!")
+
+    except Exception as e:
+        print(f"\n❌ Error in collection: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
     main()
