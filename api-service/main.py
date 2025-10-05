@@ -20,12 +20,21 @@ app = Flask(__name__)
 # Enable CORS for all routes
 CORS(app)
 
-# Initialize database tables when module is imported (works with Gunicorn)
-try:
-    init_db()
-    print("Database tables initialized successfully")
-except Exception as e:
-    print(f"Database initialization error (may be OK if tables exist): {e}")
+# Flag to track if DB is initialized
+_db_initialized = False
+
+@app.before_request
+def initialize_database():
+    """Initialize database tables on first request"""
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            init_db()
+            print("Database tables initialized successfully")
+            _db_initialized = True
+        except Exception as e:
+            print(f"Database initialization error: {e}")
+            # Don't set flag if initialization failed, will retry on next request
 
 @app.route("/")
 def root():
