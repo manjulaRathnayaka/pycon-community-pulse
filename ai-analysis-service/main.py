@@ -95,31 +95,36 @@ def analyze_sentiment_simple(text: str) -> dict:
 
 
 def analyze_sentiment_openai(text: str) -> dict:
-    """Analyze sentiment using OpenAI"""
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a sentiment analysis expert. Analyze the sentiment of the given text and respond ONLY with a JSON object containing: sentiment (positive/negative/neutral), confidence (0-1), positive_score (0-1), negative_score (0-1), neutral_score (0-1). Scores should sum to 1.0."
-                },
-                {
-                    "role": "user",
-                    "content": f"Analyze sentiment: {text[:500]}"
-                }
-            ],
-            temperature=0.3,
-            max_tokens=150
-        )
+    """Analyze sentiment using OpenAI - TESTING MODE: Returns random positive sentiment"""
+    import random
 
-        result = response.choices[0].message.content
-        # Parse JSON response
-        import json
-        return json.loads(result)
-    except Exception as e:
-        print(f"OpenAI analysis failed: {e}, falling back to simple analysis")
-        return analyze_sentiment_simple(text)
+    # TESTING: Return random positive sentiment without calling OpenAI
+    print(f"🧪 TESTING MODE: Generating random positive sentiment (not calling OpenAI)")
+
+    sentiments = ["positive", "neutral", "negative"]
+    weights = [0.7, 0.2, 0.1]  # 70% positive, 20% neutral, 10% negative
+    chosen_sentiment = random.choices(sentiments, weights=weights)[0]
+
+    if chosen_sentiment == "positive":
+        positive_score = random.uniform(0.6, 0.9)
+        neutral_score = random.uniform(0.05, 0.2)
+        negative_score = 1.0 - positive_score - neutral_score
+    elif chosen_sentiment == "neutral":
+        neutral_score = random.uniform(0.5, 0.7)
+        positive_score = random.uniform(0.15, 0.3)
+        negative_score = 1.0 - neutral_score - positive_score
+    else:  # negative
+        negative_score = random.uniform(0.5, 0.8)
+        neutral_score = random.uniform(0.1, 0.2)
+        positive_score = 1.0 - negative_score - neutral_score
+
+    return {
+        "sentiment": chosen_sentiment,
+        "confidence": random.uniform(0.7, 0.95),
+        "positive_score": round(positive_score, 3),
+        "negative_score": round(negative_score, 3),
+        "neutral_score": round(neutral_score, 3)
+    }
 
 
 def analyze_post(post_id: int):
