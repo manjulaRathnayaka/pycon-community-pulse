@@ -42,7 +42,7 @@ class DataCollector:
                         "title": article["title"],
                         "content": article.get("description", "")[:1000],
                         "author_name": article["user"]["name"],
-                        "author_url": article["user"]["url"],
+                        "author_url": f"https://dev.to/{article['user']['username']}",
                         "published_at": datetime.fromisoformat(article["published_at"].replace("Z", "+00:00")),
                         "tags": json.dumps(article.get("tag_list", [])),
                         "extra_metadata": json.dumps({
@@ -147,11 +147,12 @@ class DataCollector:
 
             repos = response.json().get("items", [])
             for repo in repos:
+                description = repo.get("description") or "No description"
                 posts.append({
                     "source": "github",
                     "source_url": repo["html_url"],
                     "title": repo["name"],
-                    "content": repo.get("description", "")[:1000] or "No description",
+                    "content": description[:1000],
                     "author_name": repo["owner"]["login"],
                     "author_url": repo["owner"]["html_url"],
                     "published_at": datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00")),
