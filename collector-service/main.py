@@ -1,6 +1,6 @@
 """
 Collector Service - Background data collection from public sources
-Collects posts from Dev.to, Medium, YouTube, GitHub
+Collects posts from Dev.to, Medium, YouTube, GitHub about PyCon
 """
 import sys
 import os
