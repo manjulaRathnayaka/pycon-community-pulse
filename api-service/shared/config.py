@@ -5,12 +5,12 @@ from typing import Optional
 class Config:
     """Application configuration"""
 
-    # Database - construct URL from individual components or use direct URL
-    _db_host = os.getenv("DB_HOST")
-    _db_port = os.getenv("DB_PORT")
-    _db_user = os.getenv("DB_USER")
-    _db_password = os.getenv("DB_PASSWORD")
-    _db_name = os.getenv("DB_NAME")
+    # Database - Choreo injects these environment variables from database connections
+    _db_host = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_HOSTNAME")
+    _db_port = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_PORT")
+    _db_user = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_USERNAME")
+    _db_password = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_PASSWORD")
+    _db_name = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_DATABASENAME")
 
     if all([_db_host, _db_port, _db_user, _db_password, _db_name]):
         DATABASE_URL = f"postgresql://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}"

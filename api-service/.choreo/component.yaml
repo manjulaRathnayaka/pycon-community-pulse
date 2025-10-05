@@ -1,6 +1,12 @@
 # +required The configuration file schema version
 schemaVersion: 1.2
 
+# +optional Dependencies
+dependencies:
+  connectionReferences:
+    - name: connection-pycon-api-defaultdb
+      resourceRef: database:pycon-pulse-db/defaultdb
+
 # +optional Incoming connection details for the component
 endpoints:
   # +required Unique name for the endpoint
