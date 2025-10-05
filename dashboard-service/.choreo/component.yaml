@@ -12,7 +12,7 @@ endpoints:
       # +optional Context (base path) of the API
       basePath: /
       # +required Numeric port value that gets exposed
-      port: 8002
+      port: 8080
     # +required Type of traffic that the endpoint is accepting
     type: REST
     # +optional Network level visibilities of the endpoint
