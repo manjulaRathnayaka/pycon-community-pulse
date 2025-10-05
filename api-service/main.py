@@ -2,6 +2,7 @@
 API Service - Main REST API for PyCon Community Pulse
 Provides endpoints for accessing posts, sentiment, and trends
 """
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -54,9 +55,10 @@ async def get_trending_topics():
     return {"topics": [], "message": "Database connection pending"}
 
 if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8080))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True
     )
