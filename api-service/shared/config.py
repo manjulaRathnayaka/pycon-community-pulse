@@ -13,7 +13,8 @@ class Config:
     _db_name = os.getenv("CHOREO_CONNECTION_PYCON_API_DEFAULTDB_DATABASENAME")
 
     if all([_db_host, _db_port, _db_user, _db_password, _db_name]):
-        DATABASE_URL = f"postgresql://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}"
+        # Build connection URL with SSL mode for Aiven/managed databases
+        DATABASE_URL = f"postgresql://{_db_user}:{_db_password}@{_db_host}:{_db_port}/{_db_name}?sslmode=require"
     else:
         DATABASE_URL: str = os.getenv(
             "DATABASE_URL",
