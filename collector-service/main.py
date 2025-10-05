@@ -3,7 +3,10 @@ Collector Service - Background data collection from public sources
 Collects posts from Dev.to, Medium, YouTube, GitHub
 """
 import sys
-sys.path.append('..')
+import os
+
+# Add the parent directory to the path to import shared modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import time
 import requests

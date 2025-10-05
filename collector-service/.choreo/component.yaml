@@ -3,16 +3,41 @@ schemaVersion: 1.2
 
 # Collector service runs as a scheduled task (no endpoints)
 
+# +optional Dependencies for the component
+dependencies:
+  connectionReferences:
+    - name: connection-pycon-collector-defaultdb
+      resourceRef: database:pycon-pulse-db/defaultdb
+
 # +optional Defines runtime configurations
 configurations:
   # +optional List of environment variables
   env:
-    - name: DATABASE_URL
+    - name: DB_HOST
       valueFrom:
-        configForm:
-          displayName: Database URL
-          required: true
-          type: secret
+        connectionRef:
+          name: connection-pycon-collector-defaultdb
+          key: HostName
+    - name: DB_PORT
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-collector-defaultdb
+          key: Port
+    - name: DB_USER
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-collector-defaultdb
+          key: Username
+    - name: DB_PASSWORD
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-collector-defaultdb
+          key: Password
+    - name: DB_NAME
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-collector-defaultdb
+          key: DatabaseName
     - name: COLLECTION_INTERVAL_MINUTES
       valueFrom:
         configForm:

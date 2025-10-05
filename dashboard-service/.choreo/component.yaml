@@ -19,16 +19,41 @@ endpoints:
     networkVisibilities:
       - Public
 
+# +optional Dependencies for the component
+dependencies:
+  connectionReferences:
+    - name: connection-pycon-dashboard-defaultdb
+      resourceRef: database:pycon-pulse-db/defaultdb
+
 # +optional Defines runtime configurations
 configurations:
   # +optional List of environment variables
   env:
-    - name: DATABASE_URL
+    - name: DB_HOST
       valueFrom:
-        configForm:
-          displayName: Database URL
-          required: true
-          type: secret
+        connectionRef:
+          name: connection-pycon-dashboard-defaultdb
+          key: HostName
+    - name: DB_PORT
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-dashboard-defaultdb
+          key: Port
+    - name: DB_USER
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-dashboard-defaultdb
+          key: Username
+    - name: DB_PASSWORD
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-dashboard-defaultdb
+          key: Password
+    - name: DB_NAME
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-dashboard-defaultdb
+          key: DatabaseName
     - name: LOG_LEVEL
       valueFrom:
         configForm:

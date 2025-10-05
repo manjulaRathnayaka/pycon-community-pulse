@@ -20,26 +20,11 @@ endpoints:
     # Accepted values: Project|Organization|Public(Default)
     networkVisibilities:
       - Public
-    # +optional Path to the schema definition file
-    # The path should be relative to the docker context
-    schemaFilePath: openapi.yaml
 
 # +optional Defines runtime configurations
 configurations:
   # +optional List of environment variables to be injected into the component
   env:
-    - name: DATABASE_URL
-      valueFrom:
-        configForm:
-          displayName: Database URL
-          required: true
-          type: secret
-    - name: OPENAI_API_KEY
-      valueFrom:
-        configForm:
-          displayName: OpenAI API Key
-          required: false
-          type: secret
     - name: LOG_LEVEL
       valueFrom:
         configForm:

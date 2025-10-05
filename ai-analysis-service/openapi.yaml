@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: PyCon Community Pulse - AI Analysis Service
+  description: Internal service for sentiment analysis and topic extraction
+  version: 1.0.0
+
+servers:
+  - url: https://ai-analysis.choreo.dev/pycon-pulse
+    description: Production server
+
+paths:
+  /analyze:
+    post:
+      summary: Analyze posts
+      description: Perform sentiment analysis and topic extraction on posts
+      operationId: analyzePosts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                post_ids:
+                  type: array
+                  items:
+                    type: integer
+                  description: List of post IDs to analyze
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  analyzed_count:
+                    type: integer
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /analyze/post/{post_id}:
+    post:
+      summary: Analyze single post
+      description: Perform analysis on a single post
+      operationId: analyzePost
+      parameters:
+        - name: post_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the post to analyze
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '404':
+          description: Post not found
+        '500':
+          description: Internal server error
+
+  /health:
+    get:
+      summary: Health check
+      description: Check the health of the AI analysis service
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    AnalysisResult:
+      type: object
+      properties:
+        post_id:
+          type: integer
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        topics:
+          type: array
+          items:
+            type: string
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              name:
+                type: string
+        analyzed_at:
+          type: string
+          format: date-time

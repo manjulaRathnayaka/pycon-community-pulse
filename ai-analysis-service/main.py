@@ -3,7 +3,10 @@ AI Analysis Service - Sentiment analysis and topic extraction
 Analyzes posts using OpenAI/Anthropic APIs
 """
 import sys
-sys.path.append('..')
+import os
+
+# Add the parent directory to the path to import shared modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from fastapi import FastAPI, BackgroundTasks, Depends
 from sqlalchemy.orm import Session

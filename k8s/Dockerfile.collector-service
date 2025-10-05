@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY collector-service/requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY shared /app/shared
+COPY collector-service/main.py /app/
+
+RUN useradd -u 10004 -m appuser && chown -R appuser:appuser /app
+USER 10004
+
+CMD ["python", "main.py"]

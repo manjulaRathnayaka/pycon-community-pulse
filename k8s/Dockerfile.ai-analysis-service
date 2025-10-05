@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY ai-analysis-service/requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY shared /app/shared
+COPY ai-analysis-service/main.py /app/
+
+RUN useradd -u 10002 -m appuser && chown -R appuser:appuser /app
+USER 10002
+
+EXPOSE 8001
+
+CMD ["python", "main.py"]
