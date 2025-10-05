@@ -5,8 +5,8 @@ Displays sentiment trends, popular topics, and posts
 import sys
 import os
 
-# Add the parent directory to the path to import shared modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add current directory to path to import shared module
+sys.path.insert(0, os.path.dirname(__file__))
 
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse

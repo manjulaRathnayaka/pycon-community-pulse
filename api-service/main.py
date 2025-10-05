@@ -9,8 +9,8 @@ from flask_cors import CORS
 from datetime import datetime, timedelta
 from sqlalchemy import desc, func
 
-# Add shared module to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '.'))
+# Add current directory to path to import shared module
+sys.path.insert(0, os.path.dirname(__file__))
 
 from shared import get_db_context, config, Post, SentimentAnalysis, Topic
 
