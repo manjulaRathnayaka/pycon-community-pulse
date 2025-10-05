@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 from .config import config
-import certifi
+import os
 
 # Lazy-load engine and session factory
 _engine = None
@@ -17,20 +17,21 @@ def get_engine():
     """Get or create database engine (lazy initialization)"""
     global _engine
     if _engine is None:
-        # SSL configuration for Aiven/managed PostgreSQL databases
-        # For Choreo deployments, the platform handles SSL properly
-        # For local development with choreo connect, we use basic SSL without full verification
-        import os
-
         connect_args = {
             "connect_timeout": 10,
         }
 
-        # Only add SSL settings if connecting to a remote Aiven database
+        # SSL configuration for Aiven/managed PostgreSQL databases
         if "aivencloud.com" in config.DATABASE_URL:
-            # In Choreo cloud environment, use require mode (certs are handled by platform)
-            # For local testing with choreo connect, this will work without strict verification
             connect_args["sslmode"] = "require"
+
+            # Use the CA certificate file from the project root
+            ca_cert_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                "ca-85f67baa-6594-4397-b2a4-59b362a01435.pem"
+            )
+            if os.path.exists(ca_cert_path):
+                connect_args["sslrootcert"] = ca_cert_path
 
         _engine = create_engine(
             config.DATABASE_URL,
