@@ -12,7 +12,7 @@ from sqlalchemy import desc, func, text
 # Add current directory to path to import shared module
 sys.path.insert(0, os.path.dirname(__file__))
 
-from shared import get_db_context, config, Post, SentimentAnalysis, Topic
+from shared import get_db_context, init_db, config, Post, SentimentAnalysis, Topic
 
 # Flask app - this needs to be named 'app' for Gunicorn to find it
 app = Flask(__name__)
@@ -124,6 +124,11 @@ def get_trending_topics():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    # Initialize database tables on startup
+    print("Initializing database tables...")
+    init_db()
+    print("Database tables initialized successfully")
+
     port = int(os.getenv("PORT", 8080))
     app.run(
         host="0.0.0.0",
