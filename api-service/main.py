@@ -3,62 +3,62 @@ API Service - Main REST API for PyCon Community Pulse
 Provides endpoints for accessing posts, sentiment, and trends
 """
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+from flask import Flask, jsonify
+from flask_cors import CORS
 
-# FastAPI app - this needs to be named 'app' for Gunicorn to find it
-app = FastAPI(
-    title="PyCon Community Pulse API",
-    description="API for accessing PyCon community sentiment and trends",
-    version="1.0.0"
-)
+# Flask app - this needs to be named 'app' for Gunicorn to find it
+app = Flask(__name__)
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Enable CORS for all routes
+CORS(app)
 
-@app.get("/")
-async def root():
+@app.route("/")
+def root():
     """Root endpoint"""
-    return {"message": "Welcome to PyCon Community Pulse API", "version": "1.0.0"}
+    return jsonify({
+        "message": "Welcome to PyCon Community Pulse API", 
+        "version": "1.0.0"
+    })
 
-@app.get("/health")
-async def health_check():
+@app.route("/health")
+def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "api-service"}
+    return jsonify({
+        "status": "healthy", 
+        "service": "api-service"
+    })
 
-@app.get("/posts")
-async def get_posts():
+@app.route("/posts")
+def get_posts():
     """Get recent posts"""
-    return {"posts": [], "message": "Database connection pending"}
+    return jsonify({
+        "posts": [], 
+        "message": "Database connection pending"
+    })
 
-@app.get("/sentiment/stats")
-async def get_sentiment_stats():
+@app.route("/sentiment/stats")
+def get_sentiment_stats():
     """Get sentiment statistics"""
-    return {
+    return jsonify({
         "total_posts": 0,
         "positive": 0,
         "negative": 0,
         "neutral": 0,
         "average_sentiment": 0.0
-    }
+    })
 
-@app.get("/topics/trending")
-async def get_trending_topics():
+@app.route("/topics/trending")
+def get_trending_topics():
     """Get trending topics"""
-    return {"topics": [], "message": "Database connection pending"}
+    return jsonify({
+        "topics": [], 
+        "message": "Database connection pending"
+    })
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
-    uvicorn.run(
-        "main:app",
+    app.run(
         host="0.0.0.0",
         port=port,
-        reload=True
+        debug=True
     )
