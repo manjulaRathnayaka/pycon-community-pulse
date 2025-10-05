@@ -19,23 +19,16 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 
 # Get API connection details from Choreo environment variables
+# No API key needed - using Project-level visibility for internal communication
 API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_CONNECTION_SERVICEURL", "http://localhost:8080")
-API_KEY = os.getenv("CHOREO_API_SERVICE_CONNECTION_APIKEY", "")
-
-# For local development, use config.js style URL (when deployed, it will be injected)
-# This allows the dashboard to work both locally and in Choreo
 API_BASE_URL = API_SERVICE_URL.rstrip('/')
 
 
 async def call_api(endpoint: str):
     """Helper function to call the API service"""
-    headers = {}
-    if API_KEY:
-        headers["apikey"] = API_KEY
-
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            response = await client.get(f"{API_BASE_URL}{endpoint}", headers=headers)
+            response = await client.get(f"{API_BASE_URL}{endpoint}")
             response.raise_for_status()
             return response.json()
         except Exception as e:
