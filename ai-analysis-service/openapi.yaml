@@ -3,50 +3,84 @@ info:
   title: PyCon Community Pulse - AI Analysis Service
   description: Internal service for sentiment analysis and topic extraction
   version: 1.0.0
+  contact:
+    name: PyCon Community Pulse
+    url: https://github.com/manjulaRathnayaka/pycon-community-pulse
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
   - url: https://ai-analysis.choreo.dev/pycon-pulse
     description: Production server
 
 paths:
-  /analyze:
-    post:
-      summary: Analyze posts
-      description: Perform sentiment analysis and topic extraction on posts
-      operationId: analyzePosts
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                post_ids:
-                  type: array
-                  items:
-                    type: integer
-                  description: List of post IDs to analyze
+  /:
+    get:
+      summary: Root endpoint
+      description: Get service information and health status
+      operationId: getRoot
       responses:
         '200':
-          description: Analysis completed successfully
+          description: Successful response
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  service:
                     type: string
-                  analyzed_count:
+                    example: "AI Analysis Service"
+                  status:
+                    type: string
+                    example: "healthy"
+                  openai_configured:
+                    type: boolean
+                    description: Whether OpenAI API key is configured
+
+  /analyze/pending:
+    post:
+      summary: Analyze pending posts
+      description: Perform sentiment analysis and topic extraction on unanalyzed posts
+      operationId: analyzePendingPosts
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of posts to analyze
+          required: false
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Analysis queued successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "processing"
+                  posts_queued:
                     type: integer
-        '400':
-          description: Bad request
+                    description: Number of posts queued for analysis
         '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
-  /analyze/post/{post_id}:
+  /analyze/{post_id}:
     post:
       summary: Analyze single post
-      description: Perform analysis on a single post
+      description: Trigger analysis for a specific post
       operationId: analyzePost
       parameters:
         - name: post_id
@@ -57,24 +91,7 @@ paths:
           description: ID of the post to analyze
       responses:
         '200':
-          description: Analysis completed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnalysisResult'
-        '404':
-          description: Post not found
-        '500':
-          description: Internal server error
-
-  /health:
-    get:
-      summary: Health check
-      description: Check the health of the AI analysis service
-      operationId: healthCheck
-      responses:
-        '200':
-          description: Service is healthy
+          description: Analysis queued successfully
           content:
             application/json:
               schema:
@@ -82,39 +99,85 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: "healthy"
-                  timestamp:
+                    example: "queued"
+                  post_id:
+                    type: integer
+                    description: ID of the post being analyzed
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
                     type: string
-                    format: date-time
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
 components:
   schemas:
-    AnalysisResult:
+    SentimentResult:
       type: object
       properties:
-        post_id:
-          type: integer
         sentiment:
           type: string
           enum: [positive, negative, neutral]
+          description: Overall sentiment classification
         confidence:
           type: number
           format: float
           minimum: 0
           maximum: 1
-        topics:
-          type: array
-          items:
-            type: string
-        entities:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-              name:
-                type: string
-        analyzed_at:
+          description: Confidence score for the sentiment
+        positive_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Positive sentiment score
+        negative_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Negative sentiment score
+        neutral_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Neutral sentiment score
+
+    Topic:
+      type: object
+      properties:
+        topic:
           type: string
-          format: date-time
+          description: Topic name
+        relevance_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Relevance score for the topic
+
+    Entity:
+      type: object
+      properties:
+        entity_type:
+          type: string
+          description: Type of entity (e.g., mention)
+        entity_name:
+          type: string
+          description: Name of the entity
+        mention_count:
+          type: integer
+          description: Number of times mentioned

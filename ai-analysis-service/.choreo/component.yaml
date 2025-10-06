@@ -20,6 +20,8 @@ endpoints:
     networkVisibilities:
       - Project
       - Organization
+    # +optional Schema file path
+    schemaFilePath: openapi.yaml
 
 # +optional Dependencies for the component
 dependencies:
