@@ -28,6 +28,7 @@ endpoints:
     # Accepted values: Project|Organization|Public(Default)
     networkVisibilities:
       - Project
+      - Organization
     # +optional Schema file path
     schemaFilePath: openapi.yaml
 

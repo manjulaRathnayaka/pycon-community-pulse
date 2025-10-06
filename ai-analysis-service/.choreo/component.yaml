@@ -19,6 +19,7 @@ endpoints:
     # Project = internal only
     networkVisibilities:
       - Project
+      - Organization
 
 # +optional Dependencies for the component
 dependencies:
