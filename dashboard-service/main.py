@@ -3,12 +3,18 @@ Dashboard Service - Web UI for PyCon Community Pulse
 Displays sentiment trends, popular topics, and posts
 """
 import os
+import sys
 from datetime import datetime
 import uvicorn
 import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="PyCon Community Pulse - Dashboard",
@@ -24,15 +30,17 @@ API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_CONNECTION_SERVICEURL", "http://
 API_BASE_URL = API_SERVICE_URL.rstrip('/')
 
 # Log configuration on startup
-print("=" * 80)
-print("DASHBOARD SERVICE CONFIGURATION")
-print("=" * 80)
-print(f"API_SERVICE_URL: {API_SERVICE_URL}")
-print(f"API_BASE_URL: {API_BASE_URL}")
-print(f"PORT: {os.getenv('PORT', '8080')}")
-print(f"LOG_LEVEL: {os.getenv('LOG_LEVEL', 'info')}")
-print(f"CHOREO_API_SERVICE_CONNECTION_SERVICEURL env: {os.getenv('CHOREO_API_SERVICE_CONNECTION_SERVICEURL', 'NOT SET')}")
-print("=" * 80)
+logger.info("=" * 80)
+logger.info("DASHBOARD SERVICE CONFIGURATION")
+logger.info("=" * 80)
+logger.info(f"API_SERVICE_URL: {API_SERVICE_URL}")
+logger.info(f"API_BASE_URL: {API_BASE_URL}")
+logger.info(f"PORT: {os.getenv('PORT', '8080')}")
+logger.info(f"LOG_LEVEL: {os.getenv('LOG_LEVEL', 'info')}")
+logger.info(f"CHOREO_API_SERVICE_CONNECTION_SERVICEURL env: {os.getenv('CHOREO_API_SERVICE_CONNECTION_SERVICEURL', 'NOT SET')}")
+logger.info("=" * 80)
+sys.stdout.flush()
+sys.stderr.flush()
 
 
 async def call_api(endpoint: str):
@@ -40,13 +48,13 @@ async def call_api(endpoint: str):
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             full_url = f"{API_BASE_URL}{endpoint}"
-            print(f"[API CALL] Calling: {full_url}")
+            logger.info(f"[API CALL] Calling: {full_url}")
             response = await client.get(full_url)
-            print(f"[API CALL] Response status: {response.status_code}")
+            logger.info(f"[API CALL] Response status: {response.status_code}")
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"[API ERROR] Error calling {API_BASE_URL}{endpoint}: {e}")
+            logger.error(f"[API ERROR] Error calling {API_BASE_URL}{endpoint}: {e}")
             return None
 
 
