@@ -7,7 +7,7 @@ dependencies:
     - name: connection-pycon-api-defaultdb
       resourceRef: database:pycon-pulse-db/defaultdb
     - name: AI Analysis Connection
-      resourceRef: service:/pycon-community-pulse/pycon-ai-analysis/v1/1ee5f/PROJECT
+      resourceRef: service:/pycon-community-pulse/pycon-ai-analysis/v1/5c69c/PROJECT
 
 # +optional Incoming connection details for the component
 endpoints:
