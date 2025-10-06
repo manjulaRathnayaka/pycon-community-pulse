@@ -193,13 +193,6 @@ async def root():
     }
 
 
-@app.post("/analyze/{post_id}")
-async def analyze_post_endpoint(post_id: int, background_tasks: BackgroundTasks):
-    """Trigger analysis for a specific post"""
-    background_tasks.add_task(analyze_post, post_id)
-    return {"status": "queued", "post_id": post_id}
-
-
 @app.post("/analyze/pending")
 async def analyze_pending_posts(
     limit: int = 10,
@@ -219,6 +212,13 @@ async def analyze_pending_posts(
         "status": "processing",
         "posts_queued": len(pending_posts)
     }
+
+
+@app.post("/analyze/{post_id}")
+async def analyze_post_endpoint(post_id: int, background_tasks: BackgroundTasks):
+    """Trigger analysis for a specific post"""
+    background_tasks.add_task(analyze_post, post_id)
+    return {"status": "queued", "post_id": post_id}
 
 
 if __name__ == "__main__":
