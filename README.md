@@ -74,44 +74,160 @@ All data collected is publicly available.
 - OpenAI API key
 - Choreo CLI (for deployment)
 
-### Local Development
+### Local Development with Choreo Connect
 
-1. **Clone and setup**
-   ```bash
-   cd pycon-community-pulse
-   ```
+The recommended way to develop locally is using `choreo connect`, which connects your local service to your Choreo project and injects all environment variables (database connections, API keys, etc.).
 
-2. **Setup database**
-   ```bash
-   createdb pycon_pulse
-   psql pycon_pulse < database/schema.sql
-   ```
+#### Prerequisites
+- [Choreo CLI installed](https://wso2.com/choreo/docs/choreo-cli/overview/)
+- Choreo account with project deployed
+- Python 3.11+
 
-3. **Configure environment**
-   ```bash
-   export DATABASE_URL="postgresql://user:pass@localhost:5432/pycon_pulse"
-   export OPENAI_API_KEY="your-key-here"
-   ```
+---
 
-4. **Run services**
-   ```bash
-   # Terminal 1: API Service
-   cd api-service && pip install -r requirements.txt && python main.py
+### 1. API Service
 
-   # Terminal 2: AI Analysis Service
-   cd ai-analysis-service && pip install -r requirements.txt && python main.py
+**Start the service:**
+```bash
+cd api-service
+choreo connect --project "PyCon Community Pulse" --component "pycon-api" -- python3 main.py
+```
 
-   # Terminal 3: Dashboard
-   cd dashboard-service && pip install -r requirements.txt && python main.py
+**Test API endpoints:**
+```bash
+# Health check
+curl http://localhost:8080/
 
-   # Terminal 4: Collector
-   cd collector-service && pip install -r requirements.txt && python main.py
-   ```
+# Get all posts
+curl http://localhost:8080/posts
 
-5. **Access**
-   - API: http://localhost:8000
-   - Dashboard: http://localhost:8002
-   - API Docs: http://localhost:8000/docs
+# Get sentiment statistics
+curl http://localhost:8080/sentiment/stats
+
+# Get trending topics
+curl http://localhost:8080/trending/topics
+```
+
+**Test dependency (AI Analysis Service) invocation:**
+```bash
+# This will trigger AI analysis for pending posts
+curl -X POST http://localhost:8080/analyze
+```
+
+---
+
+### 2. AI Analysis Service
+
+**Start the service:**
+```bash
+cd ai-analysis-service
+choreo connect --project "PyCon Community Pulse" --component "pycon-ai-analysis" -- python3 main.py
+```
+
+**Test AI service endpoints:**
+```bash
+# Health check
+curl http://localhost:8080/
+
+# Analyze pending posts (will queue 5 posts for analysis)
+curl -X POST "http://localhost:8080/analyze/pending?limit=5"
+
+# Analyze a specific post by ID
+curl -X POST http://localhost:8080/analyze/1
+```
+
+**Test database connectivity:**
+```bash
+# Run the database connection test script
+choreo connect --project "PyCon Community Pulse" --component "pycon-ai-analysis" -- python3 test_db_connection.py
+```
+
+> **Note:** The AI service uses OpenAI for sentiment analysis. Set `OPENAI_API_KEY` in Choreo component configurations. Without it, the service will use random sentiment generation for testing.
+
+---
+
+### 3. Dashboard Service
+
+**Start the service:**
+```bash
+cd dashboard-service
+choreo connect --project "PyCon Community Pulse" --component "PyCon Pulse Dashboard" -- python3 main.py
+```
+
+**Access the dashboard:**
+- Open browser: http://localhost:8080
+
+**Test API dependency:**
+The dashboard automatically calls the API service. Check browser console or logs to verify:
+```bash
+# The dashboard calls these endpoints:
+# - /posts
+# - /sentiment/stats
+# - /trending/topics
+```
+
+---
+
+### 4. Collector Service (Scheduled Task)
+
+**Run manually:**
+```bash
+cd collector-service
+choreo connect --project "PyCon Community Pulse" --component "pycon-collector" -- python3 main.py
+```
+
+**Test data collection:**
+```bash
+# Check logs for collected posts from:
+# - Dev.to API
+# - Medium RSS
+# - YouTube (if API key configured)
+# - GitHub (if token configured)
+```
+
+---
+
+### Environment Variables Reference
+
+When using `choreo connect`, these environment variables are automatically injected:
+
+**Database Connection:**
+- `CHOREO_CONNECTION_*_HOSTNAME`
+- `CHOREO_CONNECTION_*_PORT`
+- `CHOREO_CONNECTION_*_USERNAME`
+- `CHOREO_CONNECTION_*_PASSWORD`
+- `CHOREO_CONNECTION_*_DATABASENAME`
+
+**Service Connections:**
+- `CHOREO_API_SERVICE_CONNECTION_SERVICEURL` (for Dashboard → API)
+- `CHOREO_AI_ANALYSIS_CONNECTION_SERVICEURL` (for API → AI Analysis)
+
+**API Keys (configured in Choreo):**
+- `OPENAI_API_KEY`
+- `YOUTUBE_API_KEY` (optional)
+- `GITHUB_TOKEN` (optional)
+
+---
+
+### Troubleshooting
+
+**Database connection issues:**
+```bash
+# Verify database connection
+cd ai-analysis-service
+choreo connect --project "PyCon Community Pulse" --component "pycon-ai-analysis" -- python3 test_db_connection.py
+```
+
+**Port conflicts:**
+```bash
+# Change the local port
+PORT=8090 choreo connect --project "PyCon Community Pulse" --component "pycon-api" -- python3 main.py
+```
+
+**View injected environment variables:**
+```bash
+choreo connect --project "PyCon Community Pulse" --component "pycon-api" -- env | grep CHOREO
+```
 
 ### Deploy to Choreo
 
