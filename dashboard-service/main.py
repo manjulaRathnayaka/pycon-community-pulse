@@ -23,16 +23,30 @@ templates = Jinja2Templates(directory="templates")
 API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_CONNECTION_SERVICEURL", "http://localhost:8080")
 API_BASE_URL = API_SERVICE_URL.rstrip('/')
 
+# Log configuration on startup
+print("=" * 80)
+print("DASHBOARD SERVICE CONFIGURATION")
+print("=" * 80)
+print(f"API_SERVICE_URL: {API_SERVICE_URL}")
+print(f"API_BASE_URL: {API_BASE_URL}")
+print(f"PORT: {os.getenv('PORT', '8080')}")
+print(f"LOG_LEVEL: {os.getenv('LOG_LEVEL', 'info')}")
+print(f"CHOREO_API_SERVICE_CONNECTION_SERVICEURL env: {os.getenv('CHOREO_API_SERVICE_CONNECTION_SERVICEURL', 'NOT SET')}")
+print("=" * 80)
+
 
 async def call_api(endpoint: str):
     """Helper function to call the API service"""
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            response = await client.get(f"{API_BASE_URL}{endpoint}")
+            full_url = f"{API_BASE_URL}{endpoint}"
+            print(f"[API CALL] Calling: {full_url}")
+            response = await client.get(full_url)
+            print(f"[API CALL] Response status: {response.status_code}")
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"Error calling API {endpoint}: {e}")
+            print(f"[API ERROR] Error calling {API_BASE_URL}{endpoint}: {e}")
             return None
 
 
