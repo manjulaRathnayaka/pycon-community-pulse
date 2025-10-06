@@ -35,6 +35,36 @@ endpoints:
 configurations:
   # +optional List of environment variables to be injected into the component
   env:
+    - name: DB_HOST
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-api-defaultdb
+          key: HostName
+    - name: DB_PORT
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-api-defaultdb
+          key: Port
+    - name: DB_USER
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-api-defaultdb
+          key: Username
+    - name: DB_PASSWORD
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-api-defaultdb
+          key: Password
+    - name: DB_NAME
+      valueFrom:
+        connectionRef:
+          name: connection-pycon-api-defaultdb
+          key: DatabaseName
+    - name: CHOREO_AI_ANALYSIS_CONNECTION_SERVICEURL
+      valueFrom:
+        connectionRef:
+          name: AI Analysis Connection
+          key: ServiceURL
     - name: LOG_LEVEL
       valueFrom:
         configForm:
