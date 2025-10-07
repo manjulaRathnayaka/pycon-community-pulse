@@ -12,7 +12,6 @@ import random
 import sys
 from typing import Dict, List, Optional, Tuple
 
-import openai
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -30,9 +29,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI
+# Initialize OpenAI client
+openai_client = None
 if config.OPENAI_API_KEY:
-    openai.api_key = config.OPENAI_API_KEY
+    from openai import OpenAI
+    openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
     logger.info("OpenAI API key configured")
 else:
     logger.warning("OpenAI API key not configured - using fallback analysis")
@@ -169,9 +170,13 @@ def analyze_sentiment_openai(text: str) -> SentimentResult:
     Raises:
         Exception: If OpenAI API call fails
     """
+    if not openai_client:
+        logger.warning("OpenAI client not initialized, falling back to simple analysis")
+        return analyze_sentiment_simple(text)
+
     try:
         # Call OpenAI API for sentiment analysis
-        response = openai.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
