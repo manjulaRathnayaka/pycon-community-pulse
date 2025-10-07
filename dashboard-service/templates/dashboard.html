@@ -207,8 +207,7 @@
                     <h3>{{ post.title }}</h3>
                     <div class="meta">
                         <span>{{ post.source }}</span> •
-                        <span>{{ post.author or "Unknown author" }}</span> •
-                        <span>{{ post.published_at.strftime('%Y-%m-%d %H:%M') if post.published_at else 'N/A' }}</span>
+                        <span>{{ post.published_at.strftime('%Y-%m-%d') if post.published_at else 'N/A' }}</span>
                     </div>
                     <span class="sentiment-badge {{ post.sentiment }}">{{ post.sentiment }}</span>
                     <a href="{{ post.url }}" target="_blank">View original →</a>
