@@ -21,7 +21,9 @@ endpoints:
 
 # +optional Dependencies for the component
 dependencies:
-  connectionReferences: []
+  connectionReferences:
+    - name: dashboard-to-api
+      resourceRef: service:/pycon-community-pulse/pycon-api/v1.0/endpoint/api-service
 
 # +optional Defines runtime configurations
 configurations:
