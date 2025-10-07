@@ -1,0 +1,39 @@
+[project]
+name = "pycon-api-service"
+version = "1.0.0"
+description = "REST API service for PyCon Community Pulse"
+requires-python = ">=3.11"
+
+[tool.ruff]
+# Line length to match Black's default
+line-length = 100
+
+# Enable Pyflakes, pycodestyle, and isort rules
+select = ["E", "F", "I", "W"]
+
+# Ignore specific rules
+ignore = []
+
+# Exclude directories
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "shared",
+]
+
+[tool.ruff.lint]
+# Allow unused variables when prefixed with underscore
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
