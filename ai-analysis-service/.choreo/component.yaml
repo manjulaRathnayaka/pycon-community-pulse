@@ -26,7 +26,7 @@ endpoints:
 # +optional Dependencies for the component
 dependencies:
   connectionReferences:
-    - name: pycon-ai-analysis-defaultdb
+    - name: connection-pycon-ai-analysis-defaultdb
       resourceRef: database:pycon-pulse-db/defaultdb
 
 # +optional Defines runtime configurations

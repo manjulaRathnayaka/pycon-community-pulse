@@ -6,7 +6,7 @@ schemaVersion: 1.2
 # +optional Dependencies for the component
 dependencies:
   connectionReferences:
-    - name: pycon-collector-defaultdb
+    - name: connection-pycon-collector-defaultdb
       resourceRef: database:pycon-pulse-db/defaultdb
 
 # +optional Defines runtime configurations

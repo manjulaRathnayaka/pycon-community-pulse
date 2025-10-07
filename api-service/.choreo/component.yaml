@@ -4,9 +4,9 @@ schemaVersion: 1.2
 # +optional Dependencies
 dependencies:
   connectionReferences:
-    - name: pycon-api-defaultdb
+    - name: connection-pycon-api-defaultdb
       resourceRef: database:pycon-pulse-db/defaultdb
-    - name: ai-analysis
+    - name: connection-ai-analysis
       resourceRef: service:/pycon-community-pulse/pycon-ai-analysis/v1/5c69c/PROJECT
 
 # +optional Incoming connection details for the component

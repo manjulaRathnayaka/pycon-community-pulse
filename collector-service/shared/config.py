@@ -5,12 +5,12 @@ from typing import Optional
 class Config:
     """Application configuration"""
 
-    # Database - Choreo auto-injects these from connection: pycon-collector-defaultdb
-    _db_host = os.getenv("CHOREO_PYCON_COLLECTOR_DEFAULTDB_HOSTNAME")
-    _db_port = os.getenv("CHOREO_PYCON_COLLECTOR_DEFAULTDB_PORT")
-    _db_user = os.getenv("CHOREO_PYCON_COLLECTOR_DEFAULTDB_USERNAME")
-    _db_password = os.getenv("CHOREO_PYCON_COLLECTOR_DEFAULTDB_PASSWORD")
-    _db_name = os.getenv("CHOREO_PYCON_COLLECTOR_DEFAULTDB_DATABASENAME")
+    # Database - Choreo auto-injects from connection: connection-pycon-collector-defaultdb
+    _db_host = os.getenv("CHOREO_CONNECTION_PYCON_COLLECTOR_DEFAULTDB_HOSTNAME")
+    _db_port = os.getenv("CHOREO_CONNECTION_PYCON_COLLECTOR_DEFAULTDB_PORT")
+    _db_user = os.getenv("CHOREO_CONNECTION_PYCON_COLLECTOR_DEFAULTDB_USERNAME")
+    _db_password = os.getenv("CHOREO_CONNECTION_PYCON_COLLECTOR_DEFAULTDB_PASSWORD")
+    _db_name = os.getenv("CHOREO_CONNECTION_PYCON_COLLECTOR_DEFAULTDB_DATABASENAME")
 
     if all([_db_host, _db_port, _db_user, _db_password, _db_name]):
         # Build connection URL for Aiven/managed databases

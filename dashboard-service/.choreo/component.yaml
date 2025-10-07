@@ -22,7 +22,7 @@ endpoints:
 # +optional Dependencies for the component
 dependencies:
   connectionReferences:
-    - name: api-service
+    - name: connection-api-service
       resourceRef: service:/pycon-community-pulse/pycon-api/v1/5c69c/PROJECT
 
 # +optional Defines runtime configurations
