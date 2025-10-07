@@ -54,3 +54,10 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+test_*.py
+
+# Security
+*.pem
+*.key
+*.crt
+ca-*.pem
