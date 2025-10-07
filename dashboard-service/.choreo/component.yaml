@@ -22,17 +22,17 @@ endpoints:
 # +optional Dependencies for the component
 dependencies:
   connectionReferences:
-    - name: api-service-connection
+    - name: api-service
       resourceRef: service:/pycon-community-pulse/pycon-api/v1/5c69c/PROJECT
 
 # +optional Defines runtime configurations
 configurations:
   # +optional List of environment variables
   env:
-    - name: CHOREO_API_SERVICE_CONNECTION_SERVICEURL
+    - name: CHOREO_API_SERVICE_SERVICEURL
       valueFrom:
         connectionRef:
-          name: api-service-connection
+          name: api-service
           key: ServiceURL
     - name: LOG_LEVEL
       valueFrom:
