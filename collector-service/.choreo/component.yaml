@@ -11,8 +11,15 @@ dependencies:
 
 # +optional Defines runtime configurations
 configurations:
+  # +optional File mounts for CA certificate
+  fileMounts:
+    - name: db-ca-certificate
+      mountPath: /etc/ssl/certs/ca.pem
+      configType: secret
   # +optional List of environment variables
   env:
+    - name: DB_CA_CERT_PATH
+      value: /etc/ssl/certs/ca.pem
     - name: COLLECTION_INTERVAL_MINUTES
       valueFrom:
         configForm:
