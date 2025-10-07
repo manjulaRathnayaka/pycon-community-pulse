@@ -24,8 +24,8 @@ app = FastAPI(
 # Templates
 templates = Jinja2Templates(directory="templates")
 
-# Get API connection details from Choreo environment variables
-# No API key needed - using Project-level visibility for internal communication
+# Get API connection details from Choreo auto-injected environment variables
+# Connection name: api-service -> env: CHOREO_API_SERVICE_SERVICEURL
 API_SERVICE_URL = os.getenv("CHOREO_API_SERVICE_SERVICEURL", "http://localhost:8080")
 API_BASE_URL = API_SERVICE_URL.rstrip('/')
 

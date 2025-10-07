@@ -13,31 +13,6 @@ dependencies:
 configurations:
   # +optional List of environment variables
   env:
-    - name: DB_HOST
-      valueFrom:
-        connectionRef:
-          name: pycon-collector-defaultdb
-          key: HostName
-    - name: DB_PORT
-      valueFrom:
-        connectionRef:
-          name: pycon-collector-defaultdb
-          key: Port
-    - name: DB_USER
-      valueFrom:
-        connectionRef:
-          name: pycon-collector-defaultdb
-          key: Username
-    - name: DB_PASSWORD
-      valueFrom:
-        connectionRef:
-          name: pycon-collector-defaultdb
-          key: Password
-    - name: DB_NAME
-      valueFrom:
-        connectionRef:
-          name: pycon-collector-defaultdb
-          key: DatabaseName
     - name: COLLECTION_INTERVAL_MINUTES
       valueFrom:
         configForm:

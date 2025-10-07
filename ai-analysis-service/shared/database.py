@@ -22,15 +22,12 @@ def get_engine():
         }
 
         # SSL configuration for Aiven/managed PostgreSQL databases
-        if "aivencloud.com" in config.DATABASE_URL:
+        if "aivencloud.com" in config.DATABASE_URL or "digitalocean.com" in config.DATABASE_URL:
             connect_args["sslmode"] = "require"
 
-            # Use the CA certificate file from the project root
-            ca_cert_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                "ca-85f67baa-6594-4397-b2a4-59b362a01435.pem"
-            )
-            if os.path.exists(ca_cert_path):
+            # Use CA certificate from environment variable or file
+            ca_cert_path = os.getenv("DB_CA_CERT_PATH")
+            if ca_cert_path and os.path.exists(ca_cert_path):
                 connect_args["sslrootcert"] = ca_cert_path
 
         _engine = create_engine(

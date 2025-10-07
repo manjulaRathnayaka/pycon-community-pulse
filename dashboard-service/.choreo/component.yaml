@@ -29,11 +29,6 @@ dependencies:
 configurations:
   # +optional List of environment variables
   env:
-    - name: CHOREO_API_SERVICE_SERVICEURL
-      valueFrom:
-        connectionRef:
-          name: api-service
-          key: ServiceURL
     - name: LOG_LEVEL
       valueFrom:
         configForm:

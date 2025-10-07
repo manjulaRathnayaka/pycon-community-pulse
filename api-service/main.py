@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from shared import get_db_context, init_db, config, Post, SentimentAnalysis, Topic
 
-# AI Analysis Service URL (from Choreo connection or fallback to localhost)
+# AI Analysis Service URL (Choreo auto-injects from connection: ai-analysis)
 AI_SERVICE_URL = os.getenv("CHOREO_AI_ANALYSIS_SERVICEURL", "http://localhost:8001")
 
 # Flask app - this needs to be named 'app' for Gunicorn to find it
