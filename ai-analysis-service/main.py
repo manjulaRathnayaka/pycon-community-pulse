@@ -175,17 +175,23 @@ def analyze_sentiment_openai_demo(text: str) -> SentimentResult:
     chosen_sentiment = random.choices(sentiments, weights=weights)[0]
 
     if chosen_sentiment == "positive":
-        positive_score = random.uniform(0.6, 0.9)
-        neutral_score = random.uniform(0.05, 0.2)
-        negative_score = 1.0 - positive_score - neutral_score
+        positive_score = random.uniform(0.6, 0.85)
+        neutral_score = random.uniform(0.05, 0.15)
+        negative_score = max(0.0, 1.0 - positive_score - neutral_score)
     elif chosen_sentiment == "neutral":
-        neutral_score = random.uniform(0.5, 0.7)
-        positive_score = random.uniform(0.15, 0.3)
-        negative_score = 1.0 - neutral_score - positive_score
+        neutral_score = random.uniform(0.5, 0.65)
+        positive_score = random.uniform(0.15, 0.25)
+        negative_score = max(0.0, 1.0 - neutral_score - positive_score)
     else:  # negative
-        negative_score = random.uniform(0.5, 0.8)
-        neutral_score = random.uniform(0.1, 0.2)
-        positive_score = 1.0 - negative_score - neutral_score
+        negative_score = random.uniform(0.5, 0.75)
+        neutral_score = random.uniform(0.1, 0.15)
+        positive_score = max(0.0, 1.0 - negative_score - neutral_score)
+
+    # Normalize to ensure scores sum to 1.0 and are all >= 0
+    total = positive_score + neutral_score + negative_score
+    positive_score = positive_score / total
+    neutral_score = neutral_score / total
+    negative_score = negative_score / total
 
     return SentimentResult(
         sentiment=chosen_sentiment,
