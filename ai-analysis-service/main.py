@@ -284,8 +284,8 @@ async def root() -> ServiceInfoResponse:
 
 @app.post("/analyze/pending", response_model=AnalysisStatusResponse)
 async def analyze_pending_posts(
+    background_tasks: BackgroundTasks,
     limit: int = 10,
-    background_tasks: Optional[BackgroundTasks] = None,
     db: Session = Depends(get_db)
 ) -> AnalysisStatusResponse:
     """
@@ -295,8 +295,8 @@ async def analyze_pending_posts(
     background processing.
 
     Args:
-        limit: Maximum number of posts to analyze
         background_tasks: FastAPI background tasks manager
+        limit: Maximum number of posts to analyze
         db: Database session from dependency injection
 
     Returns:
@@ -309,11 +309,7 @@ async def analyze_pending_posts(
         pending_posts = db.query(Post).filter(Post.analyzed == False).limit(limit).all()
 
         for post in pending_posts:
-            if background_tasks:
-                background_tasks.add_task(analyze_post, post.id)
-            else:
-                # Synchronous fallback (used for testing)
-                analyze_post(post.id)
+            background_tasks.add_task(analyze_post, post.id)
 
         logger.info(f"Queued {len(pending_posts)} posts for analysis")
         return AnalysisStatusResponse(
