@@ -236,6 +236,12 @@ def main():
     ╚══════════════════════════════════════════════════════╝
         """)
 
+        # Initialize database tables on first run
+        from shared import init_db
+        print("🔧 Initializing database tables...")
+        init_db()
+        print("✅ Database tables initialized successfully")
+
         # Collect from all sources
         results = collector.collect_all()
 
