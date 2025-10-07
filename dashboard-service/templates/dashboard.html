@@ -131,6 +131,51 @@
         .sentiment-badge.positive { background: #d1fae5; color: #065f46; }
         .sentiment-badge.negative { background: #fee2e2; color: #991b1b; }
         .sentiment-badge.neutral { background: #fef3c7; color: #92400e; }
+
+        /* Skeleton loader styles */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+        }
+        .skeleton-title {
+            height: 24px;
+            width: 70%;
+            margin-bottom: 12px;
+        }
+        .skeleton-stat {
+            height: 48px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .skeleton-bar {
+            height: 60px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .skeleton-tag {
+            height: 32px;
+            width: 80px;
+            display: inline-block;
+            margin: 6px;
+        }
+        .hidden { display: none; }
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
     </style>
 </head>
 <body>
@@ -152,76 +197,266 @@
             </ul>
         </div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <h3>{{ total_posts }}</h3>
+        <div class="stats" id="stats-container">
+            <!-- Loading skeletons -->
+            <div class="stat-card skeleton-loader">
+                <div class="skeleton skeleton-stat"></div>
                 <p>Total Posts</p>
             </div>
-            <div class="stat-card">
-                <h3>{{ analyzed_posts }}</h3>
+            <div class="stat-card skeleton-loader">
+                <div class="skeleton skeleton-stat"></div>
                 <p>Analyzed</p>
             </div>
-            <div class="stat-card">
-                <h3>{{ sentiment_stats.positive }}</h3>
+            <div class="stat-card skeleton-loader">
+                <div class="skeleton skeleton-stat"></div>
+                <p>Positive</p>
+            </div>
+
+            <!-- Actual content (hidden initially) -->
+            <div class="stat-card hidden" data-content="total-posts">
+                <h3 id="total-posts-value">0</h3>
+                <p>Total Posts</p>
+            </div>
+            <div class="stat-card hidden" data-content="analyzed-posts">
+                <h3 id="analyzed-posts-value">0</h3>
+                <p>Analyzed</p>
+            </div>
+            <div class="stat-card hidden" data-content="positive-posts">
+                <h3 id="positive-posts-value">0</h3>
                 <p>Positive</p>
             </div>
         </div>
 
         <div class="sentiment">
             <h2>📊 Sentiment Overview (Last 7 Days)</h2>
-            <div class="sentiment-bar">
-                {% set total = sentiment_stats.positive + sentiment_stats.neutral + sentiment_stats.negative %}
-                {% if total > 0 %}
-                    <div class="sentiment-positive" style="flex: {{ sentiment_stats.positive }}"></div>
-                    <div class="sentiment-neutral" style="flex: {{ sentiment_stats.neutral }}"></div>
-                    <div class="sentiment-negative" style="flex: {{ sentiment_stats.negative }}"></div>
-                {% else %}
+
+            <!-- Loading skeleton -->
+            <div class="skeleton-loader">
+                <div class="skeleton skeleton-bar"></div>
+            </div>
+
+            <!-- Actual content (hidden initially) -->
+            <div id="sentiment-content" class="hidden">
+                <div class="sentiment-bar" id="sentiment-bar">
                     <div style="flex: 1; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #666;">
                         No data yet
                     </div>
-                {% endif %}
+                </div>
+                <div class="sentiment-legend" id="sentiment-legend">
+                    <span><span class="dot sentiment-positive"></span> Positive: <span id="positive-count">0</span></span>
+                    <span><span class="dot sentiment-neutral"></span> Neutral: <span id="neutral-count">0</span></span>
+                    <span><span class="dot sentiment-negative"></span> Negative: <span id="negative-count">0</span></span>
+                </div>
             </div>
-            <div class="sentiment-legend">
-                <span><span class="dot sentiment-positive"></span> Positive: {{ sentiment_stats.positive }}</span>
-                <span><span class="dot sentiment-neutral"></span> Neutral: {{ sentiment_stats.neutral }}</span>
-                <span><span class="dot sentiment-negative"></span> Negative: {{ sentiment_stats.negative }}</span>
-            </div>
+            <div id="sentiment-error" class="error-message hidden"></div>
         </div>
 
         <div class="topics">
             <h2>🔥 Trending Topics</h2>
-            <div class="topic-cloud">
-                {% for topic in topics %}
-                    <span class="topic-tag">{{ topic.topic }} ({{ topic.count }})</span>
-                {% endfor %}
-                {% if not topics %}
-                    <p style="color: #666;">No topics extracted yet</p>
-                {% endif %}
+
+            <!-- Loading skeleton -->
+            <div class="topic-cloud skeleton-loader">
+                <span class="skeleton skeleton-tag"></span>
+                <span class="skeleton skeleton-tag"></span>
+                <span class="skeleton skeleton-tag"></span>
+                <span class="skeleton skeleton-tag"></span>
+                <span class="skeleton skeleton-tag"></span>
             </div>
+
+            <!-- Actual content (hidden initially) -->
+            <div class="topic-cloud hidden" id="topics-content"></div>
+            <div id="topics-error" class="error-message hidden"></div>
         </div>
 
         <div class="posts">
             <h2>📝 Recent Posts</h2>
-            {% for post in recent_posts %}
+
+            <!-- Loading skeletons -->
+            <div class="skeleton-loader">
                 <div class="post-item">
-                    <h3>{{ post.title }}</h3>
-                    <div class="meta">
-                        <span>{{ post.source }}</span> •
-                        <span>{{ post.published_at.strftime('%Y-%m-%d') if post.published_at else 'N/A' }}</span>
-                    </div>
-                    <span class="sentiment-badge {{ post.sentiment }}">{{ post.sentiment }}</span>
-                    <a href="{{ post.url }}" target="_blank">View original →</a>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 40%;"></div>
                 </div>
-            {% endfor %}
-            {% if not recent_posts %}
-                <p style="color: #666;">No posts collected yet</p>
-            {% endif %}
+                <div class="post-item">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                </div>
+                <div class="post-item">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                </div>
+            </div>
+
+            <!-- Actual content (hidden initially) -->
+            <div id="posts-content" class="hidden"></div>
+            <div id="posts-error" class="error-message hidden"></div>
         </div>
     </div>
 
     <script>
-        // Auto-refresh every 30 seconds
-        setTimeout(() => location.reload(), 30000);
+        // Configuration
+        const API_BASE_URL = '{{ api_base_url }}';
+        const REFRESH_INTERVAL = 30000; // 30 seconds
+        let refreshTimer = null;
+
+        // Utility: Fetch with error handling
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                throw error;
+            }
+        }
+
+        // Load sentiment stats
+        async function loadSentimentStats() {
+            try {
+                const data = await fetchAPI('/sentiment/stats');
+
+                // Update stats cards
+                document.getElementById('total-posts-value').textContent = data.total_posts || 0;
+                document.getElementById('analyzed-posts-value').textContent = data.analyzed_posts || 0;
+                document.getElementById('positive-posts-value').textContent = data.positive || 0;
+
+                // Show actual content, hide skeletons
+                document.querySelectorAll('.stats .skeleton-loader').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.stats [data-content]').forEach(el => el.classList.remove('hidden'));
+
+                // Update sentiment bar
+                const positive = data.positive || 0;
+                const neutral = data.neutral || 0;
+                const negative = data.negative || 0;
+                const total = positive + neutral + negative;
+
+                const sentimentBar = document.getElementById('sentiment-bar');
+                if (total > 0) {
+                    sentimentBar.innerHTML = `
+                        <div class="sentiment-positive" style="flex: ${positive}"></div>
+                        <div class="sentiment-neutral" style="flex: ${neutral}"></div>
+                        <div class="sentiment-negative" style="flex: ${negative}"></div>
+                    `;
+                } else {
+                    sentimentBar.innerHTML = `
+                        <div style="flex: 1; background: #e5e7eb; display: flex; align-items: center; justify-content: center; color: #666;">
+                            No data yet
+                        </div>
+                    `;
+                }
+
+                // Update legend
+                document.getElementById('positive-count').textContent = positive;
+                document.getElementById('neutral-count').textContent = neutral;
+                document.getElementById('negative-count').textContent = negative;
+
+                // Show sentiment content, hide skeleton
+                document.querySelector('.sentiment .skeleton-loader').classList.add('hidden');
+                document.getElementById('sentiment-content').classList.remove('hidden');
+                document.getElementById('sentiment-error').classList.add('hidden');
+            } catch (error) {
+                document.querySelector('.sentiment .skeleton-loader').classList.add('hidden');
+                const errorEl = document.getElementById('sentiment-error');
+                errorEl.textContent = 'Failed to load sentiment data. Retrying...';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Load trending topics
+        async function loadTopics() {
+            try {
+                const data = await fetchAPI('/topics/trending?limit=10');
+                const topicsContent = document.getElementById('topics-content');
+
+                if (data.topics && data.topics.length > 0) {
+                    topicsContent.innerHTML = data.topics.map(topic =>
+                        `<span class="topic-tag">${topic.topic} (${topic.count})</span>`
+                    ).join('');
+                } else {
+                    topicsContent.innerHTML = '<p style="color: #666;">No topics extracted yet</p>';
+                }
+
+                // Show content, hide skeleton
+                document.querySelector('.topics .skeleton-loader').classList.add('hidden');
+                topicsContent.classList.remove('hidden');
+                document.getElementById('topics-error').classList.add('hidden');
+            } catch (error) {
+                document.querySelector('.topics .skeleton-loader').classList.add('hidden');
+                const errorEl = document.getElementById('topics-error');
+                errorEl.textContent = 'Failed to load topics. Retrying...';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Load recent posts
+        async function loadPosts() {
+            try {
+                const data = await fetchAPI('/posts?limit=10');
+                const postsContent = document.getElementById('posts-content');
+
+                if (data.posts && data.posts.length > 0) {
+                    postsContent.innerHTML = data.posts.map(post => {
+                        const publishedDate = post.published_at
+                            ? new Date(post.published_at).toISOString().split('T')[0]
+                            : 'N/A';
+
+                        return `
+                            <div class="post-item">
+                                <h3>${post.title || 'No title'}</h3>
+                                <div class="meta">
+                                    <span>${post.source || 'Unknown'}</span> •
+                                    <span>${publishedDate}</span>
+                                </div>
+                                <span class="sentiment-badge ${post.sentiment || 'neutral'}">${post.sentiment || 'unknown'}</span>
+                                <a href="${post.url || '#'}" target="_blank">View original →</a>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    postsContent.innerHTML = '<p style="color: #666;">No posts collected yet</p>';
+                }
+
+                // Show content, hide skeleton
+                document.querySelector('.posts .skeleton-loader').classList.add('hidden');
+                postsContent.classList.remove('hidden');
+                document.getElementById('posts-error').classList.add('hidden');
+            } catch (error) {
+                document.querySelector('.posts .skeleton-loader').classList.add('hidden');
+                const errorEl = document.getElementById('posts-error');
+                errorEl.textContent = 'Failed to load posts. Retrying...';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Load all data in parallel
+        async function loadAllData() {
+            await Promise.all([
+                loadSentimentStats(),
+                loadTopics(),
+                loadPosts()
+            ]);
+        }
+
+        // Auto-refresh with AJAX (no page reload)
+        function startAutoRefresh() {
+            if (refreshTimer) clearInterval(refreshTimer);
+            refreshTimer = setInterval(() => {
+                console.log('Auto-refreshing data...');
+                loadAllData();
+            }, REFRESH_INTERVAL);
+        }
+
+        // Initial load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            startAutoRefresh();
+        });
     </script>
 </body>
 </html>
