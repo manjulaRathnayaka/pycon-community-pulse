@@ -15,25 +15,14 @@ This application demonstrates:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│              Choreo Platform                     │
-└─────────────────────────────────────────────────┘
-                    │
-    ┌───────────────┼───────────────┬──────────────┐
-    ▼               ▼               ▼              ▼
-┌─────────┐  ┌─────────────┐  ┌──────────┐  ┌──────────┐
-│   API   │  │ AI Analysis │  │Dashboard │  │Collector │
-│ Service │  │   Service   │  │ Service  │  │  (Task)  │
-└─────────┘  └─────────────┘  └──────────┘  └──────────┘
-     │             │               │              │
-     └─────────────┴───────────────┴──────────────┘
-                    │
-          ┌─────────────────────┐
-          │ Choreo PostgreSQL   │
-          │   (Managed DB)      │
-          └─────────────────────┘
-```
+![Architecture Diagram](docs/images/architecture.png)
+
+The application consists of 4 microservices deployed on Choreo:
+- **Dashboard** (Web App) - User-facing UI with streaming SSR
+- **API Service** - REST API for data access
+- **AI Analysis Service** - Sentiment analysis using OpenAI
+- **Collector** (Scheduled Task) - Data collection from Dev.to, Medium, YouTube, GitHub
+- **Database** - Choreo-managed PostgreSQL
 
 ### Services
 
@@ -70,18 +59,167 @@ All data collected is publicly available. No web scraping is performed.
 
 ## 🚀 Deploy to Choreo
 
-You can deploy this application using either the **Choreo Console (Web UI)** or the **Choreo CLI**. The CLI method is faster and more automated.
+You can deploy this application using **Choreo MCP** (Model Context Protocol), **Choreo CLI**, or the **Choreo Console (Web UI)**. The MCP method is the fastest and most automated.
 
 ### Prerequisites
 
 - A Choreo account ([Sign up here](https://console.choreo.dev/))
 - GitHub account with this repository forked
 - OpenAI API key (for sentiment analysis)
-- (Optional) [Choreo CLI installed](https://wso2.com/choreo/docs/choreo-cli/install/) for CLI deployment
+
+### Deployment Methods Comparison
+
+| Method | Time | Automation | Best For |
+|--------|------|------------|----------|
+| **MCP (Recommended)** | ~5 min | Fully automated via AI | First-time users, demos |
+| **CLI** | ~15 min | Semi-automated scripts | DevOps, CI/CD |
+| **Console (Web UI)** | ~45 min | Manual clicks | Learning Choreo features |
 
 ---
 
-## Option A: Deploy with Choreo CLI (Recommended)
+## Option A: Deploy with Choreo MCP (Fastest & Easiest)
+
+The Choreo MCP (Model Context Protocol) server allows you to deploy the entire application using natural language commands via Claude Desktop or any MCP-compatible AI assistant.
+
+### 1. Configure Choreo MCP Server
+
+Add the Choreo MCP server to your Claude Desktop configuration:
+
+**Location:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Configuration:**
+```json
+{
+  "mcpServers": {
+    "choreo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@wso2/choreo-mcp-server@latest"
+      ]
+    }
+  }
+}
+```
+
+After updating the config, **restart Claude Desktop**.
+
+### 2. Authenticate with Choreo
+
+In Claude Desktop, ask:
+```
+Login to my Choreo account
+```
+
+Claude will authenticate you with Choreo. Select your organization when prompted.
+
+### 3. Deploy the Application
+
+Copy and paste this prompt into Claude Desktop:
+
+```
+I want to deploy the PyCon Community Pulse application to my Choreo account.
+
+Repository: https://github.com/YOUR_USERNAME/pycon-community-pulse
+Branch: main (or refactor/clean-architecture-python-best-practices)
+
+Please:
+1. Create a new project named "PyCon Community Pulse" in the US region
+2. Create a PostgreSQL database named "pycon-pulse-db" with the Hobbyist plan in AWS us-east-1
+3. Wait for the database to become active, then publish it to the marketplace
+
+4. Create and deploy these components:
+   - API Service: "pycon-api" from api-service/ directory (Python, port 8080)
+   - AI Analysis Service: "pycon-ai-analysis" from ai-analysis-service/ directory (Python, port 8080)
+   - Collector Service: "pycon-collector" from collector-service/ directory (Scheduled Task, Python)
+   - Dashboard: "pycon-dashboard" from dashboard-service/ directory (Web App, Python, port 8080)
+
+5. Create database connections:
+   - pycon-api → pycon-pulse-db
+   - pycon-ai-analysis → pycon-pulse-db
+   - pycon-collector → pycon-pulse-db
+
+6. Create service connections:
+   - pycon-api → pycon-ai-analysis
+   - pycon-dashboard → pycon-api
+
+7. Configure the AI Analysis service with my OpenAI API key: [YOUR_OPENAI_API_KEY]
+
+8. Build and deploy all components to the Development environment
+
+9. For the collector, set the cron schedule to "*/30 * * * *" (every 30 minutes)
+
+10. Show me the dashboard URL when complete
+
+Please proceed step by step and let me know if you need any clarification.
+```
+
+**Replace:**
+- `YOUR_USERNAME` with your GitHub username
+- `YOUR_OPENAI_API_KEY` with your actual OpenAI API key
+
+### 4. Wait for Deployment
+
+Claude will:
+- ✅ Execute all deployment steps automatically
+- ✅ Handle database provisioning and publishing
+- ✅ Create all 4 components
+- ✅ Configure connections and secrets
+- ✅ Build and deploy everything
+- ✅ Provide you with the dashboard URL
+
+**Estimated time: ~5 minutes** (mostly waiting for database provisioning)
+
+### 5. Verify Deployment
+
+Ask Claude:
+```
+Show me the status of all components in the PyCon Community Pulse project
+```
+
+Claude will show you:
+- Component deployment status
+- URLs for dashboard and API
+- Database connection status
+
+### MCP Troubleshooting
+
+If you encounter issues:
+
+**MCP server not connecting:**
+```
+Check if the Choreo MCP server is running
+```
+
+**Need to switch organizations:**
+```
+Switch to my [organization-name] organization in Choreo
+```
+
+**Want to check logs:**
+```
+Show me the latest logs for the pycon-api component
+```
+
+**Need to redeploy a component:**
+```
+Redeploy the pycon-dashboard component to Development
+```
+
+### Why MCP is the Best Option
+
+- 🤖 **AI-Powered**: Natural language commands, no memorizing syntax
+- ⚡ **Fastest**: ~5 minutes vs 15 (CLI) or 45 (Console)
+- 🎯 **Error Handling**: Claude handles errors and retries automatically
+- 📊 **Status Updates**: Real-time progress updates
+- 🔄 **Iterative**: Easily modify or redeploy components by asking
+- 📚 **Learn as you go**: Claude explains what it's doing
+
+---
+
+## Option B: Deploy with Choreo CLI
 
 The Choreo CLI provides a faster, scriptable way to deploy all components.
 
@@ -254,7 +392,7 @@ choreo deployment get --component pycon-api --env Development
 
 ---
 
-## Option B: Deploy with Choreo Console (Web UI)
+## Option C: Deploy with Choreo Console (Web UI)
 
 ### Step 1: Create a Project
 
