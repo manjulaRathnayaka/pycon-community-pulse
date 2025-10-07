@@ -79,88 +79,177 @@ You can deploy this application using **Choreo MCP** (Model Context Protocol), *
 
 ## Option A: Deploy with Choreo MCP (Fastest & Easiest)
 
-The Choreo MCP (Model Context Protocol) server allows you to deploy the entire application using natural language commands via Claude Desktop or any MCP-compatible AI assistant.
+The Choreo MCP (Model Context Protocol) server allows you to deploy the entire application using natural language commands via Claude Desktop, GitHub Copilot, or any MCP-compatible AI assistant.
 
-### 1. Configure Choreo MCP Server
+### 1. Install Choreo CLI
 
-Add the Choreo MCP server to your Claude Desktop configuration:
+First, install the Choreo CLI which includes the MCP server:
+
+**macOS/Linux:**
+```bash
+# Download and install
+curl -LO "https://github.com/wso2/choreo-cli/releases/latest/download/choreo-cli-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz"
+tar -xzf choreo-cli-*.tar.gz
+sudo mv choreo /usr/local/bin/
+
+# Verify installation
+choreo version
+```
+
+**Windows (PowerShell as Administrator):**
+```powershell
+# Download
+Invoke-WebRequest -Uri "https://github.com/wso2/choreo-cli/releases/latest/download/choreo-cli-windows-amd64.zip" -OutFile "choreo-cli.zip"
+
+# Extract
+Expand-Archive -Path choreo-cli.zip -DestinationPath .
+
+# Move to PATH location
+Move-Item -Path .\choreo.exe -Destination "C:\Program Files\Choreo\"
+
+# Verify
+choreo version
+```
+
+**Alternative (npm):**
+```bash
+npm install -g @wso2/choreo-cli
+```
+
+### 2. Login to Choreo CLI
+
+```bash
+choreo login
+```
+
+This opens your browser for authentication. After login, the CLI is ready.
+
+### 3. Configure MCP Server
+
+Choose your AI assistant:
+
+#### Option 3a: Claude Desktop
+
+Edit your Claude Desktop config file:
 
 **Location:**
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-**Configuration:**
+**Add this configuration:**
 ```json
 {
   "mcpServers": {
     "choreo": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@wso2/choreo-mcp-server@latest"
-      ]
+      "command": "choreo",
+      "args": ["start-mcp-server"],
+      "env": {}
     }
   }
 }
 ```
 
-After updating the config, **restart Claude Desktop**.
+**Restart Claude Desktop** after saving.
 
-### 2. Authenticate with Choreo
+#### Option 3b: GitHub Copilot (VS Code)
 
-In Claude Desktop, ask:
+Create or edit `.github/copilot/mcp_config.json` in your project:
+
+```json
+{
+  "mcpServers": {
+    "choreo": {
+      "command": "choreo",
+      "args": ["start-mcp-server"],
+      "env": {}
+    }
+  }
+}
 ```
-Login to my Choreo account
+
+Reload VS Code after saving.
+
+#### Option 3c: Using absolute path (recommended for reliability)
+
+If you installed Choreo CLI to a custom location, use the absolute path:
+
+**macOS/Linux:**
+```json
+{
+  "mcpServers": {
+    "choreo": {
+      "command": "/usr/local/bin/choreo",
+      "args": ["start-mcp-server"],
+      "env": {}
+    }
+  }
+}
 ```
 
-Claude will authenticate you with Choreo. Select your organization when prompted.
+**Windows:**
+```json
+{
+  "mcpServers": {
+    "choreo": {
+      "command": "C:\\Program Files\\Choreo\\choreo.exe",
+      "args": ["start-mcp-server"],
+      "env": {}
+    }
+  }
+}
+```
 
-### 3. Deploy the Application
+### 4. Deploy the Application
 
-Copy and paste this prompt into Claude Desktop:
+**Simple Prompt (Recommended):**
+
+Just paste this into Claude Desktop or GitHub Copilot:
 
 ```
-I want to deploy the PyCon Community Pulse application to my Choreo account.
+Deploy this application to Choreo.
 
 Repository: https://github.com/YOUR_USERNAME/pycon-community-pulse
-Branch: main (or refactor/clean-architecture-python-best-practices)
+Branch: main
 
-Please:
-1. Create a new project named "PyCon Community Pulse" in the US region
-2. Create a PostgreSQL database named "pycon-pulse-db" with the Hobbyist plan in AWS us-east-1
-3. Wait for the database to become active, then publish it to the marketplace
-
-4. Create and deploy these components:
-   - API Service: "pycon-api" from api-service/ directory (Python, port 8080)
-   - AI Analysis Service: "pycon-ai-analysis" from ai-analysis-service/ directory (Python, port 8080)
-   - Collector Service: "pycon-collector" from collector-service/ directory (Scheduled Task, Python)
-   - Dashboard: "pycon-dashboard" from dashboard-service/ directory (Web App, Python, port 8080)
-
-5. Create database connections:
-   - pycon-api → pycon-pulse-db
-   - pycon-ai-analysis → pycon-pulse-db
-   - pycon-collector → pycon-pulse-db
-
-6. Create service connections:
-   - pycon-api → pycon-ai-analysis
-   - pycon-dashboard → pycon-api
-
-7. Configure the AI Analysis service with my OpenAI API key: [YOUR_OPENAI_API_KEY]
-
-8. Build and deploy all components to the Development environment
-
-9. For the collector, set the cron schedule to "*/30 * * * *" (every 30 minutes)
-
-10. Show me the dashboard URL when complete
-
-Please proceed step by step and let me know if you need any clarification.
+Use my OpenAI API key: YOUR_OPENAI_API_KEY
 ```
 
 **Replace:**
 - `YOUR_USERNAME` with your GitHub username
 - `YOUR_OPENAI_API_KEY` with your actual OpenAI API key
 
-### 4. Wait for Deployment
+Claude will automatically:
+- ✅ Understand the project structure from component.yaml files
+- ✅ Create the project and database
+- ✅ Deploy all 4 services with correct configurations
+- ✅ Set up all connections
+- ✅ Configure the cron schedule for collector
+- ✅ Give you the dashboard URL
+
+**Detailed Prompt (Optional):**
+
+If you want more control, use this detailed version:
+
+```
+Deploy the PyCon Community Pulse application to Choreo.
+
+Repository: https://github.com/YOUR_USERNAME/pycon-community-pulse
+Branch: main
+
+Requirements:
+- Create project "PyCon Community Pulse" in US region
+- Create PostgreSQL database "pycon-pulse-db" (Hobbyist plan, AWS us-east-1)
+- Deploy 4 components: API service, AI analysis service, collector (scheduled task), dashboard (web app)
+- Connect all services to the database
+- Connect API → AI Analysis, Dashboard → API
+- Set OpenAI API key: YOUR_OPENAI_API_KEY
+- Set collector cron: */30 * * * * (every 30 minutes)
+- Deploy to Development environment
+
+Show me the dashboard URL when done.
+```
+
+### 5. Wait for Deployment
 
 Claude will:
 - ✅ Execute all deployment steps automatically
@@ -172,7 +261,7 @@ Claude will:
 
 **Estimated time: ~5 minutes** (mostly waiting for database provisioning)
 
-### 5. Verify Deployment
+### 6. Verify Deployment
 
 Ask Claude:
 ```
