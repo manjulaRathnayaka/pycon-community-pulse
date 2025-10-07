@@ -1,234 +1,154 @@
 """
-Collector Service - Background data collection from public sources
-Collects posts from Dev.to, Medium, YouTube, GitHub about PyCon
+Collector Service - Background data collection from public sources.
+
+This service collects posts from Dev.to, Medium, YouTube, and GitHub
+about PyCon conferences and stores them in the database for analysis.
 """
-import sys
+import logging
 import os
+import sys
+from typing import Dict, List
 
 # Add current directory to path to import shared module
 sys.path.insert(0, os.path.dirname(__file__))
 
-import time
-import requests
-import feedparser
-from datetime import datetime
-from typing import List, Dict
-import json
+from collectors import (
+    DevToCollector,
+    MediumCollector,
+    YouTubeCollector,
+    GitHubCollector
+)
+from shared import get_db_context, config, Post, CollectionLog, init_db
 
-from shared import get_db_context, config, Post, CollectionLog
-
-
-class DataCollector:
-    """Collects data from various public sources"""
-
-    def __init__(self):
-        self.keywords = config.PYCON_KEYWORDS
-        self.max_posts = config.MAX_POSTS_PER_SOURCE
-
-    def collect_devto(self) -> List[Dict]:
-        """Collect posts from Dev.to"""
-        posts = []
-        try:
-            for keyword in self.keywords[:2]:  # Limit keywords
-                url = f"https://dev.to/api/articles?tag=pycon&per_page=10"
-                response = requests.get(url, timeout=10)
-                response.raise_for_status()
-
-                articles = response.json()
-                for article in articles[:self.max_posts]:
-                    posts.append({
-                        "source": "devto",
-                        "source_url": article["url"],
-                        "title": article["title"],
-                        "content": article.get("description", "")[:1000],
-                        "author_name": article["user"]["name"],
-                        "author_url": f"https://dev.to/{article['user']['username']}",
-                        "published_at": datetime.fromisoformat(article["published_at"].replace("Z", "+00:00")),
-                        "tags": json.dumps(article.get("tag_list", [])),
-                        "extra_metadata": json.dumps({
-                            "positive_reactions_count": article.get("positive_reactions_count", 0),
-                            "comments_count": article.get("comments_count", 0)
-                        })
-                    })
-                time.sleep(1)  # Rate limiting
-
-            print(f"✅ Collected {len(posts)} posts from Dev.to")
-        except Exception as e:
-            print(f"❌ Error collecting from Dev.to: {e}")
-
-        return posts
-
-    def collect_medium_rss(self) -> List[Dict]:
-        """Collect posts from Medium RSS"""
-        posts = []
-        try:
-            # Medium tag RSS
-            feed_url = "https://medium.com/feed/tag/pycon"
-            feed = feedparser.parse(feed_url)
-
-            for entry in feed.entries[:self.max_posts]:
-                posts.append({
-                    "source": "medium",
-                    "source_url": entry.link,
-                    "title": entry.title,
-                    "content": entry.get("summary", "")[:1000],
-                    "author_name": entry.get("author", "Unknown"),
-                    "author_url": entry.get("author_detail", {}).get("href", ""),
-                    "published_at": datetime(*entry.published_parsed[:6]) if hasattr(entry, 'published_parsed') else None,
-                    "tags": json.dumps([tag.term for tag in entry.get("tags", [])[:5]]),
-                    "extra_metadata": json.dumps({})
-                })
-
-            print(f"✅ Collected {len(posts)} posts from Medium")
-        except Exception as e:
-            print(f"❌ Error collecting from Medium: {e}")
-
-        return posts
-
-    def collect_youtube_comments(self) -> List[Dict]:
-        """Collect comments from YouTube PyCon videos (if API key available)"""
-        posts = []
-        if not config.YOUTUBE_API_KEY:
-            print("ℹ️  YouTube API key not configured, skipping")
-            return posts
-
-        try:
-            # Search for PyCon videos
-            url = "https://www.googleapis.com/youtube/v3/search"
-            params = {
-                "part": "snippet",
-                "q": "PyCon 2025",
-                "type": "video",
-                "maxResults": 5,
-                "key": config.YOUTUBE_API_KEY
-            }
-            response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
-
-            videos = response.json().get("items", [])
-            # For demo, we'll just collect video metadata instead of comments
-            for video in videos:
-                snippet = video["snippet"]
-                posts.append({
-                    "source": "youtube",
-                    "source_url": f"https://www.youtube.com/watch?v={video['id']['videoId']}",
-                    "title": snippet["title"],
-                    "content": snippet["description"][:1000],
-                    "author_name": snippet["channelTitle"],
-                    "author_url": f"https://www.youtube.com/channel/{snippet['channelId']}",
-                    "published_at": datetime.fromisoformat(snippet["publishedAt"].replace("Z", "+00:00")),
-                    "tags": json.dumps([]),
-                    "extra_metadata": json.dumps({})
-                })
-
-            print(f"✅ Collected {len(posts)} videos from YouTube")
-        except Exception as e:
-            print(f"❌ Error collecting from YouTube: {e}")
-
-        return posts
-
-    def collect_github_discussions(self) -> List[Dict]:
-        """Collect discussions from GitHub (public data)"""
-        posts = []
-        try:
-            # Search GitHub repos/discussions
-            url = "https://api.github.com/search/repositories"
-            params = {
-                "q": "pycon 2025",
-                "sort": "updated",
-                "per_page": 5
-            }
-            headers = {}
-            if config.GITHUB_TOKEN:
-                headers["Authorization"] = f"token {config.GITHUB_TOKEN}"
-
-            response = requests.get(url, params=params, headers=headers, timeout=10)
-            response.raise_for_status()
-
-            repos = response.json().get("items", [])
-            for repo in repos:
-                description = repo.get("description") or "No description"
-                posts.append({
-                    "source": "github",
-                    "source_url": repo["html_url"],
-                    "title": repo["name"],
-                    "content": description[:1000],
-                    "author_name": repo["owner"]["login"],
-                    "author_url": repo["owner"]["html_url"],
-                    "published_at": datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00")),
-                    "tags": json.dumps(repo.get("topics", [])[:5]),
-                    "extra_metadata": json.dumps({
-                        "stars": repo.get("stargazers_count", 0),
-                        "forks": repo.get("forks_count", 0)
-                    })
-                })
-
-            print(f"✅ Collected {len(posts)} repos from GitHub")
-        except Exception as e:
-            print(f"❌ Error collecting from GitHub: {e}")
-
-        return posts
-
-    def collect_all(self) -> Dict[str, List[Dict]]:
-        """Collect from all sources"""
-        print("\n" + "="*60)
-        print("🔍 Starting data collection...")
-        print("="*60)
-
-        results = {
-            "devto": self.collect_devto(),
-            "medium": self.collect_medium_rss(),
-            "youtube": self.collect_youtube_comments(),
-            "github": self.collect_github_discussions()
-        }
-
-        total = sum(len(posts) for posts in results.values())
-        print(f"\n✨ Total posts collected: {total}")
-        return results
+# Configure structured logging
+logging.basicConfig(
+    level=getattr(logging, config.LOG_LEVEL.upper(), logging.INFO),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-def save_posts_to_db(posts: List[Dict], source: str):
-    """Save posts to database"""
-    with get_db_context() as db:
-        posts_found = len(posts)
-        posts_new = 0
+def collect_all_sources() -> Dict[str, List[Dict]]:
+    """
+    Collect data from all configured sources.
 
-        for post_data in posts:
-            try:
-                # Check if post already exists
-                existing = db.query(Post).filter(
-                    Post.source_url == post_data["source_url"]
-                ).first()
+    Returns:
+        Dict mapping source name to list of collected posts
+    """
+    logger.info("=" * 80)
+    logger.info("Starting data collection from all sources...")
+    logger.info("=" * 80)
 
-                if not existing:
-                    post = Post(**post_data)
-                    db.add(post)
-                    db.flush()  # Flush to detect duplicates before final commit
-                    posts_new += 1
-            except Exception as e:
-                # Skip duplicates that might occur due to race conditions
-                db.rollback()
-                continue
-
-        # Log collection
-        log = CollectionLog(
-            source=source,
-            posts_found=posts_found,
-            posts_new=posts_new,
-            status="success"
+    # Initialize collectors
+    collectors = {
+        "devto": DevToCollector(config.PYCON_KEYWORDS, config.MAX_POSTS_PER_SOURCE),
+        "medium": MediumCollector(config.PYCON_KEYWORDS, config.MAX_POSTS_PER_SOURCE),
+        "youtube": YouTubeCollector(
+            config.PYCON_KEYWORDS,
+            config.MAX_POSTS_PER_SOURCE,
+            config.YOUTUBE_API_KEY
+        ),
+        "github": GitHubCollector(
+            config.PYCON_KEYWORDS,
+            config.MAX_POSTS_PER_SOURCE,
+            config.GITHUB_TOKEN
         )
-        db.add(log)
-        db.commit()
+    }
 
-        print(f"💾 Saved {posts_new} new posts from {source}")
+    # Collect from all sources
+    results: Dict[str, List[Dict]] = {}
+    for source_name, collector in collectors.items():
+        try:
+            logger.info(f"Collecting from {source_name}...")
+            posts = collector.collect()
+            results[source_name] = posts
+        except Exception as e:
+            logger.error(f"Error collecting from {source_name}: {e}", exc_info=True)
+            results[source_name] = []
+
+    total = sum(len(posts) for posts in results.values())
+    logger.info(f"Collection complete. Total posts collected: {total}")
+    return results
 
 
-def main():
-    """Main collection - single run for scheduled/manual task"""
-    collector = DataCollector()
+def save_posts_to_db(posts: List[Dict], source: str) -> None:
+    """
+    Save collected posts to the database.
 
+    This function handles duplicate detection and logs collection statistics.
+
+    Args:
+        posts: List of post dictionaries to save
+        source: Source name for logging
+    """
     try:
-        print("""
+        with get_db_context() as db:
+            posts_found = len(posts)
+            posts_new = 0
+            posts_duplicate = 0
+
+            for post_data in posts:
+                try:
+                    # Check if post already exists
+                    existing = db.query(Post).filter(
+                        Post.source_url == post_data["source_url"]
+                    ).first()
+
+                    if not existing:
+                        post = Post(**post_data)
+                        db.add(post)
+                        db.flush()  # Flush to detect duplicates before final commit
+                        posts_new += 1
+                    else:
+                        posts_duplicate += 1
+                except Exception as e:
+                    # Skip duplicates that might occur due to race conditions
+                    logger.debug(f"Skipping duplicate post: {e}")
+                    db.rollback()
+                    posts_duplicate += 1
+                    continue
+
+            # Log collection results
+            log = CollectionLog(
+                source=source,
+                posts_found=posts_found,
+                posts_new=posts_new,
+                status="success"
+            )
+            db.add(log)
+            db.commit()
+
+            logger.info(
+                f"Saved {posts_new} new posts from {source} "
+                f"({posts_duplicate} duplicates skipped)"
+            )
+    except Exception as e:
+        logger.error(f"Error saving posts from {source}: {e}", exc_info=True)
+        # Log failed collection
+        try:
+            with get_db_context() as db:
+                log = CollectionLog(
+                    source=source,
+                    posts_found=len(posts),
+                    posts_new=0,
+                    status="error",
+                    error_message=str(e)
+                )
+                db.add(log)
+                db.commit()
+        except Exception as log_error:
+            logger.error(f"Failed to log collection error: {log_error}")
+
+
+def main() -> None:
+    """
+    Main entry point for the collector service.
+
+    Performs a single collection run from all sources and saves results
+    to the database. Designed to be run as a scheduled task or cron job.
+    """
+    try:
+        logger.info("""
     ╔══════════════════════════════════════════════════════╗
     ║                                                      ║
     ║       PyCon Community Pulse - Data Collector        ║
@@ -237,25 +157,26 @@ def main():
         """)
 
         # Initialize database tables on first run
-        from shared import init_db
-        print("🔧 Initializing database tables...")
+        logger.info("Initializing database tables...")
         init_db()
-        print("✅ Database tables initialized successfully")
+        logger.info("Database tables initialized successfully")
 
         # Collect from all sources
-        results = collector.collect_all()
+        results = collect_all_sources()
 
         # Save to database
         for source, posts in results.items():
             if posts:
                 save_posts_to_db(posts, source)
+            else:
+                logger.warning(f"No posts collected from {source}")
 
-        print("\n✅ Collection completed successfully!")
+        logger.info("=" * 80)
+        logger.info("Collection completed successfully!")
+        logger.info("=" * 80)
 
     except Exception as e:
-        print(f"\n❌ Error in collection: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Fatal error in collection: {e}", exc_info=True)
         sys.exit(1)
 
 
