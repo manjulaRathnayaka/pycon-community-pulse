@@ -9,7 +9,7 @@ import os
 import sys
 from typing import Dict, List
 
-# Add current directory to path to import shared module
+# Add current directory to path to import db module
 sys.path.insert(0, os.path.dirname(__file__))
 
 from collectors import (
@@ -18,7 +18,7 @@ from collectors import (
     YouTubeCollector,
     GitHubCollector
 )
-from shared import get_db_context, config, Post, CollectionLog, init_db
+from db import get_db_context, config, Post, CollectionLog, init_db
 
 # Configure structured logging
 logging.basicConfig(

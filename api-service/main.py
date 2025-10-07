@@ -18,10 +18,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import desc, func, text
 from sqlalchemy.orm import Session
 
-# Add current directory to path to import shared module
+# Add current directory to path to import db module
 sys.path.insert(0, os.path.dirname(__file__))
 
-from shared import get_db, get_db_context, init_db, config, Post, SentimentAnalysis, Topic
+from db import get_db, get_db_context, init_db, config, Post, SentimentAnalysis, Topic
 
 # Configure structured logging
 logging.basicConfig(

@@ -17,10 +17,10 @@ from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-# Add current directory to path to import shared module
+# Add current directory to path to import db module
 sys.path.insert(0, os.path.dirname(__file__))
 
-from shared import get_db, get_db_context, config, Post, SentimentAnalysis, Topic, Entity
+from db import get_db, get_db_context, config, Post, SentimentAnalysis, Topic, Entity
 
 # Configure structured logging
 logging.basicConfig(
