@@ -25,8 +25,8 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 
 # Get API connection details from Choreo auto-injected environment variables
-# Connection name: connection-api-service -> env: CHOREO_CONNECTION_API_SERVICE_SERVICEURL
-API_SERVICE_URL = os.getenv("CHOREO_CONNECTION_API_SERVICE_SERVICEURL", "http://localhost:8080")
+# Connection name: dashboard-to-api -> env: CHOREO_DASHBOARD_TO_API_SERVICEURL
+API_SERVICE_URL = os.getenv("CHOREO_DASHBOARD_TO_API_SERVICEURL", "http://localhost:8080")
 API_BASE_URL = API_SERVICE_URL.rstrip('/')
 
 # Log configuration on startup
@@ -37,7 +37,7 @@ logger.info(f"API_SERVICE_URL: {API_SERVICE_URL}")
 logger.info(f"API_BASE_URL: {API_BASE_URL}")
 logger.info(f"PORT: {os.getenv('PORT', '8080')}")
 logger.info(f"LOG_LEVEL: {os.getenv('LOG_LEVEL', 'info')}")
-logger.info(f"CHOREO_CONNECTION_API_SERVICE_SERVICEURL env: {os.getenv('CHOREO_CONNECTION_API_SERVICE_SERVICEURL', 'NOT SET')}")
+logger.info(f"CHOREO_DASHBOARD_TO_API_SERVICEURL env: {os.getenv('CHOREO_DASHBOARD_TO_API_SERVICEURL', 'NOT SET')}")
 logger.info("=" * 80)
 sys.stdout.flush()
 sys.stderr.flush()
