@@ -4,6 +4,7 @@ AI Analysis Service - Sentiment analysis and topic extraction.
 This service analyzes posts using OpenAI APIs for sentiment analysis,
 topic extraction, and entity recognition.
 """
+import json
 import logging
 import os
 import re
@@ -155,6 +156,77 @@ def analyze_sentiment_simple(text: str) -> SentimentResult:
         )
 
 
+def analyze_sentiment_openai(text: str) -> SentimentResult:
+    """
+    Analyze sentiment using OpenAI GPT-3.5 API.
+
+    Args:
+        text: Input text to analyze
+
+    Returns:
+        SentimentResult: Sentiment classification with scores
+
+    Raises:
+        Exception: If OpenAI API call fails
+    """
+    try:
+        # Call OpenAI API for sentiment analysis
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a sentiment analysis expert. Analyze the sentiment of the given text "
+                        "and return a JSON object with the following fields:\n"
+                        "- sentiment: one of 'positive', 'neutral', or 'negative'\n"
+                        "- confidence: a float between 0.0 and 1.0\n"
+                        "- positive_score: a float between 0.0 and 1.0\n"
+                        "- neutral_score: a float between 0.0 and 1.0\n"
+                        "- negative_score: a float between 0.0 and 1.0\n"
+                        "The three scores should sum to approximately 1.0."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Analyze the sentiment of this text:\n\n{text}"
+                }
+            ],
+            temperature=0.3,
+            max_tokens=200,
+            response_format={"type": "json_object"}
+        )
+
+        # Parse response
+        result_text = response.choices[0].message.content
+        result_dict = json.loads(result_text)
+
+        # Normalize scores to ensure they sum to 1.0 and are all >= 0
+        positive = max(0.0, float(result_dict.get("positive_score", 0.5)))
+        neutral = max(0.0, float(result_dict.get("neutral_score", 0.3)))
+        negative = max(0.0, float(result_dict.get("negative_score", 0.2)))
+
+        total = positive + neutral + negative
+        if total > 0:
+            positive = positive / total
+            neutral = neutral / total
+            negative = negative / total
+
+        return SentimentResult(
+            sentiment=result_dict.get("sentiment", "neutral").lower(),
+            confidence=min(1.0, max(0.0, float(result_dict.get("confidence", 0.8)))),
+            positive_score=round(positive, 3),
+            negative_score=round(negative, 3),
+            neutral_score=round(neutral, 3)
+        )
+
+    except Exception as e:
+        logger.error(f"OpenAI API error: {e}", exc_info=True)
+        # Fallback to simple analysis if OpenAI fails
+        logger.warning("Falling back to simple sentiment analysis")
+        return analyze_sentiment_simple(text)
+
+
 def analyze_sentiment_openai_demo(text: str) -> SentimentResult:
     """
     DEMO MODE: Generate random sentiment without calling OpenAI API.
@@ -227,7 +299,7 @@ def analyze_post(post_id: int) -> None:
 
             # Sentiment analysis
             if config.OPENAI_API_KEY:
-                sentiment_result = analyze_sentiment_openai_demo(text)
+                sentiment_result = analyze_sentiment_openai(text)
             else:
                 sentiment_result = analyze_sentiment_simple(text)
 
