@@ -8,18 +8,29 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #306998 0%, #FFD43B 100%);
             min-height: 100vh;
             padding: 20px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
+        .disclaimer {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+        .disclaimer h3 { margin-bottom: 10px; color: #856404; }
+        .disclaimer ul { margin-left: 20px; margin-top: 10px; }
+        .disclaimer li { margin-bottom: 5px; }
         .header {
             text-align: center;
             color: white;
             margin-bottom: 40px;
         }
-        .header h1 { font-size: 3em; margin-bottom: 10px; }
-        .header p { font-size: 1.2em; opacity: 0.9; }
+        .header h1 { font-size: 3em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2em; opacity: 0.95; }
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -32,7 +43,7 @@
             padding: 24px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .stat-card h3 { color: #667eea; font-size: 2.5em; margin-bottom: 8px; }
+        .stat-card h3 { color: #306998; font-size: 2.5em; margin-bottom: 8px; }
         .stat-card p { color: #666; font-size: 0.9em; text-transform: uppercase; }
         .sentiment {
             background: white;
@@ -78,7 +89,7 @@
             gap: 12px;
         }
         .topic-tag {
-            background: #667eea;
+            background: #306998;
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -92,7 +103,7 @@
         }
         .posts h2 { margin-bottom: 20px; color: #333; }
         .post-item {
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #306998;
             padding: 16px;
             margin-bottom: 16px;
             background: #f9fafb;
@@ -105,7 +116,7 @@
             margin-bottom: 8px;
         }
         .post-item a {
-            color: #667eea;
+            color: #306998;
             text-decoration: none;
         }
         .post-item a:hover { text-decoration: underline; }
@@ -125,8 +136,20 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 PyCon Community Pulse</h1>
+            <h1>🐍 PyCon Community Pulse</h1>
             <p>Real-time sentiment analysis of PyCon community discussions</p>
+        </div>
+
+        <div class="disclaimer">
+            <h3>⚠️ Demo Disclaimer</h3>
+            <p><strong>This is a demonstration application for educational purposes only.</strong></p>
+            <ul>
+                <li>This application analyzes publicly available posts from Dev.to, Medium, YouTube, and GitHub</li>
+                <li>AI sentiment analysis is automated and for demonstration purposes - not intended to judge or interpret author intent</li>
+                <li>All content remains property of original authors and platforms</li>
+                <li>No personal data is collected or stored beyond public post metadata</li>
+                <li>Sentiment scores are AI-generated estimates and may not reflect actual author sentiment</li>
+            </ul>
         </div>
 
         <div class="stats">
