@@ -70,11 +70,191 @@ All data collected is publicly available. No web scraping is performed.
 
 ## 🚀 Deploy to Choreo
 
+You can deploy this application using either the **Choreo Console (Web UI)** or the **Choreo CLI**. The CLI method is faster and more automated.
+
 ### Prerequisites
 
 - A Choreo account ([Sign up here](https://console.choreo.dev/))
 - GitHub account with this repository forked
 - OpenAI API key (for sentiment analysis)
+- (Optional) [Choreo CLI installed](https://wso2.com/choreo/docs/choreo-cli/install/) for CLI deployment
+
+---
+
+## Option A: Deploy with Choreo CLI (Recommended)
+
+The Choreo CLI provides a faster, scriptable way to deploy all components.
+
+### 1. Install Choreo CLI
+
+**macOS/Linux:**
+```bash
+curl -L https://github.com/wso2/choreo-cli/releases/latest/download/choreo-$(uname -s)-$(uname -m) -o choreo
+chmod +x choreo
+sudo mv choreo /usr/local/bin/
+```
+
+**Windows (PowerShell):**
+```powershell
+Invoke-WebRequest -Uri "https://github.com/wso2/choreo-cli/releases/latest/download/choreo-windows-amd64.exe" -OutFile "choreo.exe"
+```
+
+Verify installation:
+```bash
+choreo version
+```
+
+### 2. Login to Choreo
+
+```bash
+choreo login
+```
+
+This opens a browser for authentication. After login, select your organization.
+
+### 3. Create Project and Database
+
+```bash
+# Create project
+choreo project create --name "PyCon Community Pulse" --description "AI-powered sentiment analysis for PyCon discussions"
+
+# Create PostgreSQL database
+choreo database create \
+  --name pycon-pulse-db \
+  --type postgres \
+  --cloud-provider aws \
+  --region us-east-1 \
+  --plan hobbyist
+
+# Wait for database to become active
+choreo database get pycon-pulse-db --watch
+
+# Publish database to marketplace
+choreo database publish pycon-pulse-db
+```
+
+### 4. Deploy Services
+
+**Deploy API Service:**
+```bash
+choreo component create \
+  --name pycon-api \
+  --type service \
+  --repo https://github.com/YOUR_USERNAME/pycon-community-pulse \
+  --branch main \
+  --path api-service \
+  --buildpack python \
+  --port 8080
+
+# Add database connection
+choreo connection create \
+  --component pycon-api \
+  --type database \
+  --target pycon-pulse-db
+
+# Build and deploy
+choreo build create --component pycon-api
+choreo deployment create --component pycon-api --env Development
+```
+
+**Deploy AI Analysis Service:**
+```bash
+choreo component create \
+  --name pycon-ai-analysis \
+  --type service \
+  --repo https://github.com/YOUR_USERNAME/pycon-community-pulse \
+  --branch main \
+  --path ai-analysis-service \
+  --buildpack python \
+  --port 8080
+
+# Add database connection
+choreo connection create \
+  --component pycon-ai-analysis \
+  --type database \
+  --target pycon-pulse-db
+
+# Add OpenAI API key
+choreo config create \
+  --component pycon-ai-analysis \
+  --name OPENAI_API_KEY \
+  --value "your-openai-api-key" \
+  --type secret
+
+# Build and deploy
+choreo build create --component pycon-ai-analysis
+choreo deployment create --component pycon-ai-analysis --env Development
+```
+
+**Deploy Collector Service:**
+```bash
+choreo component create \
+  --name pycon-collector \
+  --type scheduleTask \
+  --repo https://github.com/YOUR_USERNAME/pycon-community-pulse \
+  --branch main \
+  --path collector-service \
+  --buildpack python
+
+# Add database connection
+choreo connection create \
+  --component pycon-collector \
+  --type database \
+  --target pycon-pulse-db
+
+# Build and deploy
+choreo build create --component pycon-collector
+choreo deployment create \
+  --component pycon-collector \
+  --env Development \
+  --cron "*/30 * * * *"
+```
+
+**Deploy Dashboard Service:**
+```bash
+choreo component create \
+  --name pycon-dashboard \
+  --type webapp \
+  --repo https://github.com/YOUR_USERNAME/pycon-community-pulse \
+  --branch main \
+  --path dashboard-service \
+  --buildpack python \
+  --port 8080
+
+# Connect to API service
+choreo connection create \
+  --component pycon-dashboard \
+  --type service \
+  --target pycon-api
+
+# Build and deploy
+choreo build create --component pycon-dashboard
+choreo deployment create --component pycon-dashboard --env Development
+```
+
+### 5. Create Service Connections
+
+```bash
+# Connect API → AI Analysis
+choreo connection create \
+  --component pycon-api \
+  --type service \
+  --target pycon-ai-analysis
+```
+
+### 6. Get Deployment URLs
+
+```bash
+# Get dashboard URL
+choreo deployment get --component pycon-dashboard --env Development
+
+# Get API URL
+choreo deployment get --component pycon-api --env Development
+```
+
+---
+
+## Option B: Deploy with Choreo Console (Web UI)
 
 ### Step 1: Create a Project
 
@@ -407,7 +587,7 @@ This is a demonstration application. Feel free to fork and adapt for your own de
 
 ## 📝 License
 
-MIT License
+Apache License 2.0 - See [LICENSE](LICENSE) file for details
 
 ## 🙋 Support
 
